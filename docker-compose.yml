@@ -1,0 +1,152 @@
+name: ${COMPOSE_PROJECT_NAME:-ai-gateway}
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+services:
+  database:
+    image: ${POSTGRES_IMAGE:?Run init and lock-images}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gateway
+      POSTGRES_DB: gateway
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Run init}
+    volumes:
+      - database-data:/var/lib/postgresql/data
+    networks: [gateway-network]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U gateway -d gateway']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    logging: *logging
+    security_opt: [no-new-privileges:true]
+    pids_limit: 256
+    mem_limit: 1g
+  redis:
+    image: ${REDIS_IMAGE:?Run init and lock-images}
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Run init}
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - 'printf "requirepass %s\nappendonly yes\n" "$$REDIS_PASSWORD" > /data/redis.conf; chmod 600 /data/redis.conf; exec redis-server /data/redis.conf'
+    volumes:
+      - redis-data:/data
+    networks: [gateway-network]
+    healthcheck:
+      test: [CMD-SHELL, 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -qx PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    logging: *logging
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    mem_limit: 512m
+  new-api:
+    image: ${NEW_API_IMAGE:?Run init and lock-images}
+    restart: unless-stopped
+    environment:
+      SQL_DSN: postgresql://gateway:${DB_PASSWORD:?Run init}@database:5432/gateway
+      REDIS_CONN_STRING: redis://:${REDIS_PASSWORD:?Run init}@redis:6379/0
+      SESSION_SECRET: ${SESSION_SECRET:?Run init}
+      CRYPTO_SECRET: ${CRYPTO_SECRET:?Run init}
+      TZ: Asia/Shanghai
+      NODE_NAME: gateway-local-1
+      # 关键接口（登录 / 登出 / 刷新登录态 / 注册）的限流，默认 20 次 / 20 分钟 / IP。
+      # 对控制台太紧：页面每加载一次就会调一次 /api/user/auth/refresh，刷新十几次就把桶
+      # 打满，而登录与刷新共用同一个桶 → 之后连登录都被拒，表现成「密码明明对却登不进去」。
+      # 线上真发生过（线上日志里 /api/user/auth/refresh 与 /api/user/login 同时 429）。
+      # 登录本来就有 Cloudflare Turnstile 挡着，所以这里放宽到 120 次 / 20 分钟是安全的。
+      CRITICAL_RATE_LIMIT: "120"
+      CRITICAL_RATE_LIMIT_DURATION: "1200"
+      STREAMING_TIMEOUT: "600"
+      DEBUG: "false"
+      DIFY_DEBUG: "false"
+      ERROR_LOG_ENABLED: "true"
+      BATCH_UPDATE_ENABLED: "false"
+      MEMORY_CACHE_ENABLED: "true"
+      SYNC_FREQUENCY: "10"
+      GENERATE_DEFAULT_TOKEN: "false"
+    volumes:
+      - new-api-data:/data
+    networks: [gateway-network]
+    depends_on:
+      database: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: [CMD-SHELL, 'wget -q -O - http://127.0.0.1:3000/api/status | grep -q ''"success":true''']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    stop_grace_period: 620s
+    # Application stdout can contain rejected/deleted token values even when DEBUG=false.
+    # Business audit remains in PostgreSQL; do not persist raw application stdout.
+    logging:
+      driver: none
+    security_opt: [no-new-privileges:true]
+    pids_limit: 512
+    mem_limit: 1g
+  auth-guard:
+    image: ${PYTHON_IMAGE:?Run init and lock-images}
+    restart: unless-stopped
+    command: [python, /app/auth_guard.py]
+    environment:
+      UPSTREAM_AUTH_ORIGIN: http://new-api:3000
+    volumes:
+      - ./ops/auth_guard.py:/app/auth_guard.py:ro
+    networks: [gateway-network]
+    depends_on:
+      new-api: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8788/healthz', timeout=2).read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    logging: *logging
+    user: "65534:65534"
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 128m
+  nginx:
+    image: ${NGINX_IMAGE:?Run init and lock-images}
+    restart: unless-stopped
+    # The recharge request service runs on the host (systemd), not in a
+    # container, so Nginx needs a stable way back to the host gateway.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${GATEWAY_HOST:-127.0.0.1}:${GATEWAY_PORT:-80}:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/proxy-common.conf:/etc/nginx/proxy-common.conf:ro
+      - ./nginx/brand:/usr/share/nginx/html/brand:ro
+    networks: [gateway-network]
+    depends_on:
+      new-api: {condition: service_healthy}
+      auth-guard: {condition: service_healthy}
+    healthcheck:
+      test: [CMD-SHELL, 'wget -q -O - http://127.0.0.1/healthz | grep -qx ok']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    stop_signal: SIGQUIT
+    stop_grace_period: 620s
+    logging: *logging
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE, CHOWN, SETGID, SETUID]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    mem_limit: 256m
+volumes:
+  database-data:
+  redis-data:
+  new-api-data:
+networks:
+  gateway-network:
+    driver: bridge

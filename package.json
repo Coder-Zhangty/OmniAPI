@@ -1,0 +1,10 @@
+{
+  "name": "omniapi-ops-tests",
+  "private": true,
+  "scripts": {
+    "test:support-ui": "node tests/support-v2-page-check.js"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0"
+  }
+}

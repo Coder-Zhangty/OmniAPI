@@ -1,0 +1,28 @@
+{
+  "settlement_currency": "CNY",
+  "cny_per_usd": 6.7489,
+  "fx_source": "中国外汇交易中心受权公布的人民币汇率中间价 1 美元对人民币 6.7489 元（2026-09-25 公告，多源一致）",
+  "fx_as_of": "2026-09-25",
+  "fx": {
+    "enabled": true,
+    "provider": "eastmoney",
+    "refresh_seconds": 300,
+    "max_age_seconds": 345600,
+    "fallback_max_age_seconds": 2592000,
+    "credentials_path": ".secrets/xe.json",
+    "source_decision": {
+      "decided_at": "2026-09-27",
+      "decided_by": "经营者",
+      "choice": "eastmoney",
+      "note": "经营者选择全自动跟随东方财富行情，每次下单取最新报价。已知并接受：从香港服务器访问该端点会被 302 到延迟行情（push2delay），人民币中间价本身也是每个交易日公布一次；该端点为公开网页行情而非持牌数据产品，其服务条款限制未经书面许可用行情数据开发衍生服务。"
+    },
+    "note": "max_age_seconds 是「行情报价本身」的可用时限（覆盖周末与单日节假日）；fallback_max_age_seconds 是「经营者设定备用汇率」的可用时限，超过后人民币订单会明确拒绝报价而不是静默使用过期汇率。"
+  },
+  "payment_mode": "manual_verified_receipt",
+  "accepting_payments": true,
+  "contact": "3073283716@qq.com",
+  "qr_path": "/brand/payment-qr.png",
+  "min_amount_cny": 1,
+  "amounts_cny": [10, 20, 50, 100, 200, 500],
+  "settlement_note": "到账核验由经营者本人完成；每笔付款只发放一次额度，请勿重复付款。"
+}

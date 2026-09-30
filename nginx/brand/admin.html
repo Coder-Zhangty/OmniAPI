@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>充值核验 · OmniAPI 管理</title><link rel="icon" href="/brand/omniapi.svg"><link rel="stylesheet" href="/brand/plans.css">
+<meta name="robots" content="noindex,nofollow"></head>
+<body><header><a class="brand" href="/"><img src="/brand/omniapi.svg" width="34" height="34" alt="">OmniAPI</a><nav><a href="/console">控制台 ↗</a><a href="/brand/topup.html">充值页</a></nav></header>
+<main><div class="intro"><p class="eyebrow">OMNIAPI / ADMIN</p><h1>充值核验。</h1><p>用户在充值页点「我已付款」后出现在这里。先在你的收款渠道确认这笔钱到账，再发码。</p></div>
+
+<section class="panel" id="gate"><h2>进入充值核验</h2><p class="small">已登录控制台的管理员可直接进入，无需另记口令。下面另留一个口令入口，供未登录控制台时使用；口令入口只能查看队列，入账仍需要控制台管理员登录态。</p>
+<button id="console-login" type="button">用控制台管理员身份进入</button>
+<label for="password">管理口令（备用）</label><input id="password" type="password" autocomplete="current-password" placeholder="安装时生成的口令，见 .secrets/topup-admin-password.txt">
+<button id="login" type="button">用口令登录</button><p id="gate-status" class="small" role="status"></p></section>
+
+<section id="board" hidden>
+<div class="panel" id="gateway-panel" hidden><h2>网关管理员会话</h2>
+<p class="small" id="gateway-status">入账需要一个有效的控制台管理员会话，本服务不会代替人机验证去登录。</p>
+<button id="gateway-retry" type="button">重新确认身份</button>
+<p class="small">如果你已经退出控制台，请先到 <a href="/console">控制台</a> 重新登录，再回到本页。</p></div>
+
+<div class="panel"><h2>待核验 <span id="pending-count" class="pill pending">0</span></h2>
+<p class="small">核验要点：金额、时间与你的收款流水能对上，才发码。发码额度按固定换算率折算，与充值页展示一致。</p>
+<p id="board-status" class="small" role="status"></p>
+<p id="pending-empty" class="small">暂无待核验申请。用户提交后会出现在这里。</p>
+<table class="requests" id="pending-table" hidden><thead><tr><th>申请编号</th><th>账号</th><th>支付方式</th><th>报价</th><th>预计额度</th><th>提交时间</th><th>核验与操作</th></tr></thead><tbody id="pending-body"></tbody></table></div>
+
+<div class="panel"><h2>支付方式设置</h2><p class="small">本页负责启用与停用。收款链接、钱包地址、二维码与最低金额属于经营者信息，保存在 <span class="mono">config/payment-methods.json</span>，改那个文件即时生效（无需改代码或重新部署）；为避免会话被用来改写收款去向，本页只读显示、不接受修改。</p><div id="payment-settings"></div><button id="save-settings" type="button">保存支付设置</button><p id="settings-status" class="small" role="status"></p></div>
+
+<div class="panel" id="result-panel" hidden><h2>本次入账结果</h2><p id="result-note"></p>
+<div id="result-code-wrap" hidden><p class="small">备用方式（兑换码）生成结果：</p><code class="code" id="result-code"></code></div>
+<div class="row-actions"><button id="copy-code" type="button" hidden>复制兑换码</button><button id="copy-message" type="button">复制发给用户的话</button></div>
+<textarea id="result-message" aria-label="发给用户的说明" readonly hidden></textarea><p id="result-status" class="small" role="status"></p></div>
+
+<div class="panel"><h2>已处理</h2><p id="recent-empty" class="small">暂无已处理记录。</p>
+<table class="requests" id="recent-table" hidden><thead><tr><th>申请编号</th><th>账号</th><th>支付方式</th><th>净到账</th><th>状态</th><th>入账方式</th><th>处理时间</th></tr></thead><tbody id="recent-body"></tbody></table></div>
+
+<div class="panel"><button id="refresh" type="button">刷新</button> <button id="logout" type="button">退出登录</button>
+<p class="small">页面每 30 秒自动刷新一次。本页不要公开分享链接。</p></div>
+</section>
+<footer><a href="/">OmniAPI</a><span>仅经营者本人使用。</span><a href="/brand/plans.html">查看套餐</a></footer></main>
+<script src="/brand/admin.js" defer></script></body></html>

@@ -1,0 +1,5 @@
+/* 右下角原本同时躺着「显示币种」和「充值核验」角标（right:18px;bottom:18px），
+   两个完全重叠。这一列按「通知在下、页面控件在上」排开。 */
+#omniapi-currency{position:fixed;right:22px;bottom:78px;z-index:1200;display:flex;align-items:center;gap:9px;padding:10px 13px;border:1px solid #d9e2df;border-radius:12px;background:rgba(255,255,255,.96);box-shadow:0 8px 28px rgba(20,35,42,.12);font:13px "Songti SC","SimSun",serif;color:#233}#omniapi-currency select{border:1px solid #bdcbc7;border-radius:7px;padding:6px 8px;background:#fff;font:inherit}#omniapi-currency small{display:block;color:#687875;max-width:210px}/* 窄屏：底部左侧已经被「在线客服」(18px) 与「客服工作台」(68px) 占住，
+   所以这条横幅再往上让一格，避免叠在它们或右下角角标上。 */
+@media(max-width:640px){#omniapi-currency{left:12px;right:12px;bottom:118px;justify-content:center}#omniapi-currency small{display:none}}

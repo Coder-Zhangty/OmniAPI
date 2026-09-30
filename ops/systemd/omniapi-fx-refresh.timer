@@ -1,0 +1,16 @@
+[Unit]
+Description=Refresh the OmniAPI FX snapshot every 5 minutes
+Documentation=file:/opt/ai-gateway/docs/SUBSCRIPTIONS_PAYMENTS.md
+
+[Timer]
+# Every 5 minutes, matching fx.refresh_seconds in config/topup.json, so a quote
+# always reads a snapshot that was pulled recently instead of making the first
+# visitor wait for the upstream feed (and instead of letting concurrent checkouts
+# stampede the public endpoint).
+OnBootSec=60
+OnUnitActiveSec=300
+AccuracySec=15
+Unit=omniapi-fx-refresh.service
+
+[Install]
+WantedBy=timers.target

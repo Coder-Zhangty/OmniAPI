@@ -1,0 +1,24 @@
+{
+  "api_models": {
+    "status": "PASS",
+    "http_status": 200,
+    "supplier_details_absent": true,
+    "model_count": 29,
+    "matches_verified_models": true
+  },
+  "public_pricing": {
+    "status": "PASS",
+    "http_status": 200,
+    "supplier_details_absent": true
+  },
+  "user_pricing": {
+    "status": "PASS",
+    "http_status": 200,
+    "supplier_details_absent": true
+  },
+  "user_logs": {
+    "status": "PASS",
+    "http_status": 200,
+    "supplier_details_absent": true
+  }
+}

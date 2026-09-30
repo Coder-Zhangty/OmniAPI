@@ -1,0 +1,63 @@
+[Unit]
+Description=OmniAPI recharge request service (pending top-up queue and one-click credit)
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+User=omniapi-watch
+Group=omniapi
+WorkingDirectory=/opt/ai-gateway
+Environment=PYTHONUNBUFFERED=1
+# The service must not parse .env (mode 600, root) - it only needs the admin
+# session, and that is read from .secrets/admin.json with group access. The
+# public URL is given explicitly so Stack() is never constructed.
+Environment=TOPUP_WATCH_GATEWAY_URL=https://omniapi.biz
+Environment=TOPUP_WATCH_ADDR=0.0.0.0
+Environment=TOPUP_WATCH_PORT=8787
+Environment=TOPUP_WATCH_SECRETS=/opt/ai-gateway/.secrets/topup-admin.json
+Environment=TOPUP_WATCH_EVENTS=/opt/ai-gateway/runtime/topup-requests.jsonl
+Environment=TOPUP_WATCH_LEDGER=/opt/ai-gateway/runtime/topup-ledger.json
+Environment=TOPUP_WATCH_QUOTES=/opt/ai-gateway/runtime/topup-quotes.jsonl
+Environment=TOPUP_USER_NOTICES=/opt/ai-gateway/runtime/user-notices.jsonl
+Environment=TOPUP_WATCH_FX_CACHE=/opt/ai-gateway/runtime/fx-rates.json
+# The Xe credential is passed as a path, not as systemd's LoadCredential=:
+# LoadCredential= hard-fails when the source file is missing, and no such
+# file exists while Eastmoney is the configured provider, so switching to
+# it would stop the service from starting. Anyone adopting Xe must first
+# place the key at the path below and then switch to LoadCredential=, so
+# the unprivileged account never needs read access to a root-only file.
+Environment=TOPUP_WATCH_XE_SECRETS=/opt/ai-gateway/.secrets/xe.json
+Environment=TOPUP_NOTIFY_SECRETS=/opt/ai-gateway/.secrets/support-notify.json
+Environment=TOPUP_NOTIFY_CONFIG=/opt/ai-gateway/config/support.json
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/usr/bin/python3 /opt/ai-gateway/ops/topup_watch/topup_watch.py
+Restart=on-failure
+RestartSec=5
+
+# Hardening: this process can mint credit, so it keeps the least privilege it can.
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+# Only the append-only queue and the credit ledger are writable.
+ReadWritePaths=/opt/ai-gateway/runtime
+ReadOnlyPaths=/opt/ai-gateway/scripts /opt/ai-gateway/config /opt/ai-gateway/.secrets
+
+[Install]
+WantedBy=multi-user.target

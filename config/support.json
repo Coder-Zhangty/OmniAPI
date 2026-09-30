@@ -1,0 +1,23 @@
+{
+  "enabled": true,
+  "service_hours": "通常 12:00–24:00（北京时间）；其他时间留言会在次日回复。",
+  "greeting": "你好，这里是 OmniAPI 客服。充值、接入、模型与计费相关的问题都可以直接说。",
+  "offline_hint": "现在可能不在服务时间内，留言我们会看到。急着充值的话，可以在充值页先提交付款申请。",
+  "privacy_note": "客服消息会保存在我们的服务器上，用于答复与事后核对。请不要发送密码、API 令牌或验证码。",
+  "max_text": 2000,
+  "retention_days": 180,
+  "_comment_handoff": "命中这些词会把会话标记为待人工并立刻推送（不受合并间隔限制）；它们大多是钱相关或明显需要人处理的事。",
+  "handoff_keywords": ["人工", "客服", "退款", "到账", "没收到", "充值失败", "发票", "投诉", "报错", "异常", "封号", "扣费"],
+  "_comment_notify": "channel 取 none / wecom / bark / telegram；凭据在 .secrets/support-notify.json，不进本文件。",
+  "notify": {
+    "channel": "none",
+    "min_interval_seconds": 60
+  },
+  "_comment_ai": "AI 先答需要先建一个受限令牌并写入 .secrets/support-ai.json，然后在这里打开。",
+  "ai": {
+    "enabled": false,
+    "max_rounds_per_conversation": 3,
+    "max_tokens_per_reply": 400,
+    "per_minute_limit": 10
+  }
+}

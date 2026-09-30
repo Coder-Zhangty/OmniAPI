@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>账户充值 · OmniAPI</title><link rel="icon" href="/brand/omniapi.svg"><link rel="stylesheet" href="/brand/plans.css"></head>
+<body><header><a class="brand" href="/"><img src="/brand/omniapi.svg" width="34" height="34" alt="">OmniAPI</a><nav><a href="/brand/plans.html">套餐</a><a href="/pricing">模型价格</a><a href="/wallet">我的钱包 ↗</a></nav></header>
+<main><div class="intro"><p class="eyebrow">OMNIAPI / TOP UP</p><h1>给账户充值。</h1><p>选择收款方式，取得 15 分钟报价，付款后由管理员按实际净到账金额核验入账。到账和核验可能延迟约 5 分钟。</p></div>
+<div class="layout"><section aria-labelledby="method-title"><h2 id="method-title">选择支付方式</h2><div id="methods" class="method-list"><p>正在加载支付方式…</p></div>
+<h2 id="amount-title" class="section-title">选择金额</h2><fieldset id="amounts"><legend class="sr-only">充值金额</legend></fieldset>
+<div class="custom-amount"><label for="custom-amount">自定义金额（<span id="amount-currency">CNY</span>）</label><input id="custom-amount" type="number" inputmode="decimal" step="0.01" autocomplete="off"><p class="small" id="custom-error" role="status"></p></div>
+<div class="terms"><h2>充值与到账</h2><ul><li>Payoneer 与稳定币按实际净到账 USD 发放额度；人民币按订单锁定的汇率折算。</li><li>付款到账及人工核验可能延迟约 5 分钟，请勿重复付款。</li><li>报价有效期为 15 分钟；过期前提交付款申请后仍保留该订单汇率。</li><li>人民币汇率随行情变动，每单会显示本单使用的汇率及其报价时间。</li><li>USDT / USDC 必须使用页面标明的网络，转错网络无法自动找回。</li><li>提交付款声明、二维码跳转或截图都不会自动增加余额。</li></ul><p id="fx-note"></p><p id="limitation"></p></div></section>
+<aside aria-labelledby="pay-title"><span class="step">付款与到账</span><h2 id="pay-title">确认账号和金额。</h2><p id="availability" role="status">正在检查收款信息。</p>
+<div id="checkout" hidden><div class="total"><span id="chosen-amount"></span><strong id="chosen-price"></strong></div>
+<div class="account"><span>充值到账号</span><strong id="account-id">正在识别…</strong><p class="small" id="account-note"></p></div>
+<button id="create-quote" type="button" disabled>获取报价与付款方式</button>
+<div id="payment-section" hidden><div class="quote-meta"><strong id="quote-rate"></strong><span id="quote-timer"></span><small id="quote-source"></small></div><p id="quote-warning" class="small warning" role="status" hidden></p>
+<img id="payment-qr" alt="收款二维码" loading="lazy"><a id="payment-link" class="download" target="_blank" rel="noopener noreferrer">打开收款页面 ↗</a>
+<div id="wallet-details" hidden><span class="small" id="wallet-network"></span><code id="wallet-address" class="code"></code><button id="copy-address" type="button">复制钱包地址</button><p class="small warning">请严格使用上方网络；转错网络无法自动找回。</p></div>
+<p id="payment-instructions"></p><label id="reference-label" for="payment-reference">交易参考号（选填）</label><input id="payment-reference" type="text" maxlength="128" autocomplete="off" placeholder="选填：Payoneer 参考号或链上交易哈希">
+<button id="submit-request" type="button">我已付款，提交充值申请</button><p id="submit-status" class="small" role="status">提交后管理员才会收到待核验记录。</p>
+<div id="submitted" hidden><p class="small">申请编号 <strong id="request-id"></strong></p><button id="copy-request" type="button">复制申请内容</button><p id="copy-status" class="small" role="status"></p><textarea id="request-text" aria-label="充值申请内容" readonly hidden></textarea></div></div>
+<div class="contact"><span>人工客服</span><strong id="contact"></strong><p class="small" id="settlement-note"></p></div></div></aside></div>
+<footer><a href="/">OmniAPI</a><span>按需使用，清楚计费。</span><a href="/brand/plans.html">查看套餐</a></footer></main><script src="/brand/topup.js" defer></script></body></html>

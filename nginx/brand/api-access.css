@@ -1,0 +1,5 @@
+#omniapi-api-access{display:grid;grid-template-columns:minmax(190px,1fr) minmax(260px,auto) auto;align-items:center;gap:16px;margin:18px 24px 4px;padding:16px 18px;border:1px solid rgba(0,159,114,.28);border-radius:14px;background:linear-gradient(105deg,rgba(0,159,114,.10),rgba(58,169,229,.08));box-shadow:0 8px 30px rgba(17,55,48,.07);color:inherit}
+#omniapi-api-access div{display:grid;gap:3px}#omniapi-api-access strong{font-size:15px}#omniapi-api-access span{color:#60716d;font-size:13px}
+#omniapi-api-access code{padding:9px 12px;border:1px solid rgba(0,159,114,.22);border-radius:9px;background:rgba(255,255,255,.78);color:#087b5c;font:600 14px ui-monospace,SFMono-Regular,Consolas,monospace;user-select:all}
+#omniapi-api-access button{border:0;border-radius:9px;padding:9px 14px;background:#087b5c;color:#fff;cursor:pointer;font:600 13px "Songti SC","SimSun",serif}#omniapi-api-access button:hover{background:#06694f}
+@media(max-width:760px){#omniapi-api-access{grid-template-columns:1fr;margin:12px;gap:10px}#omniapi-api-access code{overflow-wrap:anywhere}#omniapi-api-access button{width:100%}}

@@ -1,0 +1,309 @@
+{
+  "review_date": "2026-09-27",
+  "scope": "OmniAPI custom code, New API patch boundary, Nginx, systemd, Compose, authentication, top-up, billing and FX",
+  "summary": {
+    "P0": 0,
+    "P1": 2,
+    "P2": 7,
+    "P3": 4,
+    "fixed": 10,
+    "accepted_risk": 1,
+    "partially_fixed": 1,
+    "open_compensating_control": 1,
+    "needs_verification": 1
+  },
+  "findings": [
+    {
+      "id": "OMNI-SEC-001",
+      "severity": "P1",
+      "category": "资金",
+      "status": "FIXED",
+      "title": "钱包加额先于幂等台账持久化，崩溃后可重复加额",
+      "locations": [
+        {
+          "file": "scripts/credit_topup.py",
+          "lines": "237-242"
+        },
+        {
+          "file": "scripts/credit_topup.py",
+          "lines": "172-199"
+        }
+      ],
+      "preconditions": "管理员确认到账时，New API 已成功执行 add_quota，但进程在 write_json 完成前异常退出、磁盘满或权限错误。",
+      "evidence": "已实现原子写入的 prepared→applied 台账；幂等键在钱包写入前持久化。故障注入回归通过。",
+      "impact": "同一笔实际收款可获得两次或更多额度，直接破坏资金与账本完整性。",
+      "remediation": "先在事务型存储中原子预留 transaction_id/request_id 并记录 processing 状态，再调用钱包；使用稳定幂等键调用加额；成功后提交终态。启动恢复只允许对可证明未加额的记录重试。",
+      "verification": "在 add_quota 返回后、台账提交前逐点故障注入；重启并重复确认，余额增量必须始终等于一次。"
+    },
+    {
+      "id": "OMNI-SEC-002",
+      "severity": "P1",
+      "category": "资金",
+      "status": "FIXED",
+      "title": "并发确认在锁外读取状态，可在第二次终态校验前再次加额",
+      "locations": [
+        {
+          "file": "ops/topup_watch/topup_watch.py",
+          "lines": "748-762"
+        },
+        {
+          "file": "scripts/topup_requests.py",
+          "lines": "284-310"
+        }
+      ],
+      "preconditions": "两个管理员请求或双击并发处理同一 pending 申请，并提交不同 transaction 值。",
+      "evidence": "状态读取、钱包调用和终态写入置于同一进程锁；钱包幂等键固定为 topup:<request_id>。并发回归通过。",
+      "impact": "单个申请可被重复加额；第二个 HTTP 请求即使返回失败，余额已发生不可逆变化。",
+      "remediation": "在同一数据库事务或进程锁内重新读取并将 request_id 原子变更为 processing；幂等键固定使用 request_id，禁止管理员输入改变钱包幂等键。",
+      "verification": "50 组并发确认只产生一次钱包增量、一个 fulfilled 终态和一个账本记录。"
+    },
+    {
+      "id": "OMNI-SEC-003",
+      "severity": "P2",
+      "category": "合规",
+      "status": "ACCEPTED_RISK",
+      "title": "东方财富行情用于生产计价（经营者明确接受的数据授权与可用性风险）",
+      "locations": [
+        {
+          "file": "config/topup.json",
+          "lines": "7-22"
+        }
+      ],
+      "preconditions": "生产创建 CNY 充值报价。",
+      "evidence": "2026-09-27 线上只读读取返回 enabled=true、provider=eastmoney、accepting_payments=true；配置说明自身已记录公开端点条款限制未经书面许可开发衍生服务。",
+      "impact": "真实订单锁价依赖未确认商业授权的数据源，存在服务条款、可用性和报价争议风险。",
+      "remediation": "经营者于 2026-09-27 明确决定继续使用。系统保留来源、逐币种时间、过期拒绝和备用汇率标识，并限制最终重定向主机、响应体积、Content-Type 与字段完整性。后续取得授权数据源时可切换 provider。",
+      "verification": "生产响应公开标记东方财富延迟行情、来源时间和 operator-accepted；过期或字段异常不得创建市场价订单。"
+    },
+    {
+      "id": "OMNI-SEC-004",
+      "severity": "P2",
+      "category": "认证",
+      "status": "FIXED",
+      "title": "管理写接口仅依赖 SameSite Cookie，缺少显式 Origin/CSRF 校验",
+      "locations": [
+        {
+          "file": "ops/topup_watch/topup_watch.py",
+          "lines": "885-926"
+        }
+      ],
+      "preconditions": "同站点脚本执行、同站点子域被接管、浏览器策略变化或后续 Cookie 属性被放宽。",
+      "evidence": "管理 POST 强制精确 Origin；已认证写请求还需会话绑定 HMAC CSRF token。线上错误 Origin 返回 403。",
+      "impact": "具备同站点请求能力的攻击者可确认充值、忽略申请、修改支付开关或上传二维码。",
+      "remediation": "对写接口强制校验精确 Origin=https://omniapi.biz，并使用会话绑定的随机 CSRF token；拒绝缺失或不匹配请求。",
+      "verification": "无 Origin、错误 Origin、无 token、错误 token 均为 403；正确组合成功。"
+    },
+    {
+      "id": "OMNI-SEC-005",
+      "severity": "P2",
+      "category": "认证",
+      "status": "FIXED",
+      "title": "管理员会话为 30 天无状态 Cookie，注销和改密不能撤销已复制会话",
+      "locations": [
+        {
+          "file": "ops/topup_watch/topup_watch.py",
+          "lines": "156-188"
+        },
+        {
+          "file": "ops/topup_watch/topup_watch.py",
+          "lines": "893-903"
+        },
+        {
+          "file": "ops/topup_watch/topup_watch.py",
+          "lines": "1050-1051"
+        }
+      ],
+      "preconditions": "管理员 Cookie 被本机恶意软件、浏览器扩展或其他渠道复制。",
+      "evidence": "会话缩短至 8 小时，v2 cookie 带持久化 generation；注销递增 generation，旧 cookie 立即失效。",
+      "impact": "被盗会话可持续执行充值确认直至 30 天到期，即使管理员已经注销或修改口令。",
+      "remediation": "使用服务端会话记录与随机 session id；注销、改密、管理员角色变化时撤销；资金动作使用更短 TTL 并要求近期重新认证。",
+      "verification": "注销、改密和角色降级后，旧 Cookie 立即返回 401。"
+    },
+    {
+      "id": "OMNI-SEC-006",
+      "severity": "P2",
+      "category": "供应链",
+      "status": "FIXED",
+      "title": "public-id 补丁脚本会删除 AffCode 字段且宣称的重复执行并不成立",
+      "locations": [
+        {
+          "file": "core/patches/apply_public_id.py",
+          "lines": "25-32"
+        },
+        {
+          "file": "core/patches/apply_public_id.py",
+          "lines": "187-203"
+        },
+        {
+          "file": "core/patches/public-id-v1.patch",
+          "lines": "102-110"
+        }
+      ],
+      "preconditions": "重新构建定制 New API 镜像或升级后重放补丁。",
+      "evidence": "FIELD_ADDED 保留 AffCode 后新增 PublicId；应用前先识别完整已应用状态。回归通过。",
+      "impact": "可能导致编译失败、邀请字段丢失或不可重复构建，削弱镜像来源与灾难恢复可信度。",
+      "remediation": "新增 PublicId 行而非替换 AffCode；先检测完整已应用状态，再检查旧锚点；在固定上游提交的干净 checkout 中执行两次并编译。",
+      "verification": "首跑成功、第二跑无变化；AffCode 与 PublicId 同时存在；Go build、迁移和邀请功能测试通过。"
+    },
+    {
+      "id": "OMNI-SEC-007",
+      "severity": "P2",
+      "category": "数据",
+      "status": "FIXED",
+      "title": "生产充值事件、报价和台账权限允许整个 omniapi 组写入，报价文件全局可读",
+      "locations": [
+        {
+          "file": "ops/topup_watch/install.sh",
+          "lines": "73-90"
+        },
+        {
+          "file": "ops/systemd/omniapi-topup-watch.service",
+          "lines": "55-57"
+        }
+      ],
+      "preconditions": "主机上的其他用户或进程进入 omniapi 组，或低权限服务被攻陷。",
+      "evidence": "线上 runtime=2770；ledger/events/quotes=0640 omniapi-watch:omniapi。",
+      "impact": "同组进程可篡改审计与幂等依据；本机任意用户可读取报价记录。",
+      "remediation": "目录 0750，事件/台账/报价 0640 或更严；拆分只读 Nginx 资产目录与资金运行目录；追加事件使用数据库约束或带链式 MAC 的审计存储。",
+      "verification": "非服务用户不能读取或写入；服务账户仍可追加；篡改会被检测并阻止自动处理。"
+    },
+    {
+      "id": "OMNI-SEC-008",
+      "severity": "P2",
+      "category": "主机",
+      "status": "PARTIALLY_FIXED",
+      "title": "全部容器使用默认 root、可写根文件系统且未丢弃 capabilities",
+      "locations": [
+        {
+          "file": "docker-compose.yml",
+          "lines": "7-117"
+        }
+      ],
+      "preconditions": "任一公开服务或依赖出现容器内代码执行。",
+      "evidence": "auth-guard 已为 uid 65534、只读根、cap_drop=ALL；Nginx/全部核心服务增加 no-new-privileges、PID 与内存限制，Nginx 丢弃默认 capabilities。数据库/New API 根身份仍需镜像兼容验证。",
+      "impact": "容器逃逸前的横向移动、配置篡改和持久化空间更大；挂载文件风险增加。",
+      "remediation": "对 Nginx/auth-guard/New API 使用明确非 root 用户、read_only、tmpfs 和 cap_drop=ALL；数据库/Redis 按镜像支持逐项收紧并设置资源限制。",
+      "verification": "inspect 显示非 root、只读根和能力最小集；健康检查、流式请求、备份恢复仍通过。"
+    },
+    {
+      "id": "OMNI-SEC-009",
+      "severity": "P2",
+      "category": "主机",
+      "status": "FIXED",
+      "title": "公开页面缺少 CSP 与抗点击劫持响应头",
+      "locations": [
+        {
+          "file": "nginx/https.conf",
+          "lines": "24-152"
+        }
+      ],
+      "preconditions": "用户访问攻击者页面，或站点未来出现可利用的脚本注入。",
+      "evidence": "线上首页已返回 CSP frame-ancestors/object-src/base-uri、X-Frame-Options DENY、nosniff、Referrer-Policy 和 HSTS。",
+      "impact": "点击劫持防护缺失，且一旦出现 HTML/脚本注入没有 CSP 作为第二道防线。",
+      "remediation": "先以 Report-Only 收集，再部署 nonce/hash CSP；至少设置 frame-ancestors 'none'、object-src 'none'、base-uri 'self'。",
+      "verification": "所有 HTML 响应均含 CSP；跨站 iframe 被浏览器拒绝；SPA、Turnstile 和流式接口不回归。"
+    },
+    {
+      "id": "OMNI-SEC-010",
+      "severity": "P3",
+      "category": "数据",
+      "status": "FIXED",
+      "title": "二维码上传只验证魔数且覆盖目标时跟随既有符号链接",
+      "locations": [
+        {
+          "file": "ops/topup_watch/topup_watch.py",
+          "lines": "1090-1118"
+        },
+        {
+          "file": "ops/topup_watch/topup_watch.py",
+          "lines": "393-400"
+        }
+      ],
+      "preconditions": "攻击者已有管理员会话可上传伪图片；符号链接利用还要求本机写入 payment-assets 目录。",
+      "evidence": "上传使用 Pillow 完整 verify、像素限制、统一重编码 PNG、拒绝 symlink、临时文件 fsync 后原子替换。",
+      "impact": "可保存损坏或多态文件；在本机权限组合下可能覆盖受服务账户权限保护的其他文件。",
+      "remediation": "用 Pillow 完整 decode/verify 后重新编码；以 O_NOFOLLOW|O_CREAT|O_EXCL 写临时文件并原子替换；拒绝符号链接。",
+      "verification": "截断图片、多态文件、超大像素、路径穿越与 symlink 样本全部拒绝。"
+    },
+    {
+      "id": "OMNI-SEC-011",
+      "severity": "P3",
+      "category": "主机",
+      "status": "OPEN_COMPENSATING_CONTROL",
+      "title": "topup-watch 监听所有接口并直接信任 X-Real-IP",
+      "locations": [
+        {
+          "file": "ops/systemd/omniapi-topup-watch.service",
+          "lines": "16-18"
+        },
+        {
+          "file": "ops/topup_watch/topup_watch.py",
+          "lines": "822-823"
+        },
+        {
+          "file": "ops/topup_watch/topup_watch.py",
+          "lines": "1139-1141"
+        }
+      ],
+      "preconditions": "攻击者位于允许访问 8787 的 Docker 网段或主机防火墙规则被移除。",
+      "evidence": "线上 ss 显示 0.0.0.0:8787；UFW 当前只允许 172.16.0.0/12 并拒绝其他来源，形成有效但单层易漂移的补偿控制。",
+      "impact": "可绕过 Nginx 边界并伪造源 IP，削弱速率限制和审计归因。",
+      "remediation": "改用 Unix socket，或绑定专用 host-gateway 地址并在应用层只信任 Nginx；直接连接时忽略转发头。",
+      "verification": "公网、其他容器和本机非 Nginx 路径均无法直接访问；日志 IP 由可信代理链得出。"
+    },
+    {
+      "id": "OMNI-SEC-012",
+      "severity": "P3",
+      "category": "数据",
+      "status": "FIXED",
+      "title": "topup-watch 日志记录完整 request line，策略上仍可能包含查询字符串",
+      "locations": [
+        {
+          "file": "ops/topup_watch/topup_watch.py",
+          "lines": "815-819"
+        }
+      ],
+      "preconditions": "调用者向任意服务路径添加敏感查询参数。",
+      "evidence": "日志仅写 method 与 urlsplit(path).path，不再写查询字符串；新线上日志已使用脱敏格式。",
+      "impact": "未来路由或误用可把 token、reference 等查询值写入 journal。",
+      "remediation": "日志只记录解析后的 path，不记录 query；对 Authorization/Cookie 永不输出。",
+      "verification": "带 canary 查询值请求后，journal 中 canary 计数为 0。"
+    },
+    {
+      "id": "OMNI-SEC-013",
+      "severity": "P3",
+      "category": "前端",
+      "status": "FIXED",
+      "title": "支付方式标题通过 innerHTML 渲染，扩大未来配置注入的影响",
+      "locations": [
+        {
+          "file": "nginx/brand/topup.js",
+          "lines": "18"
+        }
+      ],
+      "preconditions": "攻击者能修改 operator-owned payment-methods 配置，或未来开放标题的管理端编辑。",
+      "evidence": "支付方式与金额节点全部改用 createElement/textContent。DOM 回归通过。",
+      "impact": "配置边界扩大后可能形成存储型 XSS。",
+      "remediation": "用 createElement/textContent 构建全部动态节点，禁止服务端文本进入 HTML 字符串。",
+      "verification": "标题设置为 HTML canary 时只显示文本，DOM 中无新增元素或事件处理器。"
+    },
+    {
+      "id": "OMNI-SEC-014",
+      "severity": "P2",
+      "category": "供应链",
+      "status": "NEEDS_VERIFICATION",
+      "title": "五个业务镜像及 Certbot 的 SBOM/CVE 扫描未完成",
+      "locations": [
+        {
+          "file": "images.lock.json",
+          "lines": "1-34"
+        }
+      ],
+      "preconditions": "锁定镜像包含已知易受攻击的系统包或运行时依赖。",
+      "evidence": "本机 Docker 引擎不可用且未安装 Docker Desktop；生产机也没有 Trivy/Syft/Grype/docker scout/docker sbom。为遵守线上只读要求，审查未在生产拉取扫描器镜像。",
+      "impact": "无法证明镜像依赖没有已知 CVE；该项不能标记 PASS。",
+      "remediation": "在隔离 CI/工作站以固定摘要运行可信的 Trivy 与 Syft/Grype，保存 scanner digest、DB 时间、每个目标 digest 和 SBOM。",
+      "verification": "六个摘要均有 CycloneDX/SPDX SBOM 与 CVE 报告；高危项有处置结论或可审计豁免。"
+    }
+  ]
+}

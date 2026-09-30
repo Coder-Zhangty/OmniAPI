@@ -1,0 +1,42 @@
+{
+  "mode": "DRAFT",
+  "accepting_payments": true,
+  "cny_per_usd": "6.7489",
+  "markup": 2,
+  "merchant_id": "",
+  "contact": "3073283716@qq.com",
+  "payment_mode": "manual_verified_receipt",
+  "plans": [
+    {
+      "id": 1,
+      "title": "OmniAPI 体验包",
+      "duration_days": 30,
+      "sale_cny": "19",
+      "quota_usd": "2.815273",
+      "native_total_amount": 1407636,
+      "enabled_in_backend": false,
+      "source_plan_title": "OmniAPI 体验包"
+    },
+    {
+      "id": 2,
+      "title": "OmniAPI 标准月包",
+      "duration_days": 30,
+      "sale_cny": "39",
+      "quota_usd": "5.778719",
+      "native_total_amount": 2889359,
+      "enabled_in_backend": false,
+      "source_plan_title": "OmniAPI 标准月包"
+    },
+    {
+      "id": 3,
+      "title": "OmniAPI 专业月包",
+      "duration_days": 30,
+      "sale_cny": "99",
+      "quota_usd": "14.669057",
+      "native_total_amount": 7334528,
+      "enabled_in_backend": false,
+      "source_plan_title": "OmniAPI 专业月包"
+    }
+  ],
+  "limitation": "Ordinary text only; cache/tool/media costs require separate validation. Fees and operating costs are not included."
+}

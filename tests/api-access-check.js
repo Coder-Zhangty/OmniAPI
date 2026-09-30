@@ -1,0 +1,21 @@
+const fs = require('fs');
+const path = require('path');
+const { JSDOM } = require('jsdom');
+const ROOT = path.resolve(__dirname, '..');
+const script = fs.readFileSync(path.join(ROOT, 'nginx/brand/api-access.js'), 'utf8');
+const dom = new JSDOM('<!doctype html><main><h1>API Keys</h1></main>', { url: 'https://omniapi.biz/keys', runScripts: 'outside-only', pretendToBeVisual: true });
+let copied = '';
+Object.defineProperty(dom.window.navigator, 'clipboard', { value: { writeText: async value => { copied = value; } } });
+dom.window.eval(script);
+const banner = dom.window.document.getElementById('omniapi-api-access');
+if (!banner) throw new Error('API address banner was not inserted on /keys');
+if (!banner.textContent.includes('https://omniapi.biz/v1')) throw new Error('Base URL missing');
+if (dom.window.document.querySelectorAll('#omniapi-api-access').length !== 1) throw new Error('Duplicate banner');
+banner.querySelector('button').click();
+setTimeout(() => {
+  if (copied !== 'https://omniapi.biz/v1') throw new Error('Copy button copied the wrong value');
+  dom.window.history.pushState({}, '', '/wallet');
+  dom.window.dispatchEvent(new dom.window.PopStateEvent('popstate'));
+  if (dom.window.document.getElementById('omniapi-api-access')) throw new Error('Banner leaked to another route');
+  console.log('API access banner: PASS');
+}, 0);

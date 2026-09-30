@@ -1,0 +1,57 @@
+[Unit]
+Description=OmniAPI live chat service (real-time customer support)
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+# Same account as the recharge service on purpose: it keeps the shared operator
+# cookie secret (.secrets/topup-admin.json, 0640 root:omniapi) readable, so one
+# sign-in covers both surfaces.
+User=omniapi-watch
+Group=omniapi
+WorkingDirectory=/opt/ai-gateway
+Environment=PYTHONUNBUFFERED=1
+Environment=SUPPORT_ADDR=0.0.0.0
+Environment=SUPPORT_PORT=8790
+Environment=SUPPORT_GATEWAY_URL=https://omniapi.biz
+# Absolute Origin match for admin writes, and the origin used in push deep links.
+Environment=SUPPORT_PUBLIC_ORIGIN=https://omniapi.biz
+Environment=SUPPORT_SECRETS=/opt/ai-gateway/.secrets/topup-admin.json
+Environment=SUPPORT_STATE=/opt/ai-gateway/runtime/admin-session-state.json
+Environment=SUPPORT_EVENTS=/opt/ai-gateway/runtime/support
+Environment=SUPPORT_NOTIFY_SECRETS=/opt/ai-gateway/.secrets/support-notify.json
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/usr/bin/python3 /opt/ai-gateway/ops/support/support_service.py
+Restart=on-failure
+RestartSec=5
+
+# This service holds long-lived streams but must never be a way into the money
+# path, so it gets the least privilege it can run with.
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+# Hard ceiling for a long-connection workload on a 1 core / 2 GB host.
+MemoryMax=128M
+# Only the append-only conversation log is writable.
+ReadWritePaths=/opt/ai-gateway/runtime
+ReadOnlyPaths=/opt/ai-gateway/scripts /opt/ai-gateway/config /opt/ai-gateway/.secrets
+
+[Install]
+WantedBy=multi-user.target

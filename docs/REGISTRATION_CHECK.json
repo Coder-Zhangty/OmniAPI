@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "registration": "PASS",
+  "login": "PASS",
+  "ordinary_user_role": "PASS",
+  "initial_quota": 370430,
+  "initial_credit_cny": 5,
+  "gift_fx_cny_per_usd": 6.7489,
+  "runtime_option_verified": true,
+  "new_account_balance_verified": false,
+  "new_account_balance_status": "NOT TESTED - public registration requires a fresh Cloudflare Turnstile token",
+  "previous_test_account_removed": true
+}

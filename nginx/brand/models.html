@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>模型价格 · OmniAPI</title>
+  <link rel="icon" href="/brand/omniapi.svg">
+  <link rel="stylesheet" href="/brand/models.css">
+</head>
+<body>
+  <header>
+    <a class="brand" href="/"><img src="/brand/omniapi.svg" alt="">OmniAPI</a>
+    <nav><a href="/brand/plans.html">套餐</a><a href="/brand/topup.html">充值</a><a href="/console">控制台 ↗</a></nav>
+  </header>
+  <main>
+    <div class="title-row">
+      <div><div class="eyebrow">MODEL CATALOG</div><h1>模型价格</h1><p class="lead">按每 100 万 Tokens 计费，输入与输出分别列出，页面价格与实际扣费一致。</p></div>
+      <div class="meta"><span id="count">读取中…</span><span>币种 USD</span><span>按实际用量</span></div>
+    </div>
+    <section><div class="table-head"><span>模型</span><span>输入 / M Tokens</span><span>输出 / M Tokens</span><span>计费方式</span></div><div id="models" aria-live="polite"></div><p id="error" role="alert"></p></section>
+  </main>
+  <footer>价格可能随供应商成本调整；调整会在本页生效。金额固定显示两位小数。</footer>
+  <script src="/brand/models.js" defer></script>
+</body>
+</html>

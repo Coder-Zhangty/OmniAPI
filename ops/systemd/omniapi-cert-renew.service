@@ -1,0 +1,9 @@
+[Unit]
+Description=Renew OmniAPI TLS certificates and reload Nginx
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/ai-gateway
+ExecStart=/opt/ai-gateway/scripts/renew-certificates.sh

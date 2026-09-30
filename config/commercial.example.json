@@ -1,0 +1,12 @@
+{
+  "markup": 2,
+  "settlement_currency": "CNY",
+  "cny_per_usd": null,
+  "payment_mode": "manual_verified_receipt",
+  "models": {},
+  "plans": [
+    {"title": "OmniAPI 体验包", "duration_days": 7, "sale_cny": null, "quota_reset_period": "never"},
+    {"title": "OmniAPI 标准月包", "duration_days": 30, "sale_cny": null, "quota_reset_period": "never"},
+    {"title": "OmniAPI 专业月包", "duration_days": 30, "sale_cny": null, "quota_reset_period": "never"}
+  ]
+}

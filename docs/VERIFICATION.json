@@ -1,0 +1,548 @@
+{
+  "synthetic": {
+    "mode": "synthetic",
+    "model": "public-test-model",
+    "results": {
+      "web_ui": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "admin_login": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "model_catalog": {
+        "status": "PASS",
+        "evidence": {
+          "count": 1,
+          "selected": "public-test-model"
+        }
+      },
+      "invalid_token": {
+        "status": "PASS",
+        "evidence": {
+          "http_status": 401
+        }
+      },
+      "invalid_token_no_upstream": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "chat_completions": {
+        "status": "PASS",
+        "evidence": {
+          "http_status": 200
+        }
+      },
+      "usage_and_channel": {
+        "status": "PASS",
+        "evidence": {
+          "request_id": "202609252029352611112318268d9d69leOebKU"
+        }
+      },
+      "billing": {
+        "status": "PASS",
+        "evidence": {
+          "expected_quota": 20,
+          "user_delta": 20,
+          "token_delta": 20
+        }
+      },
+      "streaming": {
+        "status": "PASS",
+        "evidence": {
+          "request_id": "202609252029355847082418268d9d6ad3tiwqQ",
+          "content_event_seconds": [
+            0.391,
+            0.75,
+            1.094
+          ],
+          "end_seconds": 1.094,
+          "done": true,
+          "usage": {
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "total_tokens": 30
+          }
+        }
+      },
+      "stream_billing": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "disabled_token": {
+        "status": "PASS",
+        "evidence": {
+          "http_status": 401
+        }
+      },
+      "deleted_token": {
+        "status": "PASS",
+        "evidence": {
+          "http_status": 401
+        }
+      },
+      "revoked_tokens_no_upstream": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "model_mapping": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "failover_429": {
+        "status": "PASS",
+        "evidence": {
+          "requests_per_provider": [
+            1,
+            1
+          ],
+          "http_status": 200,
+          "user_delta": 20,
+          "token_delta": 20,
+          "request_id": "202609252029401044411918268d9d6mKwyjzJU"
+        }
+      },
+      "failover_500": {
+        "status": "PASS",
+        "evidence": {
+          "requests_per_provider": [
+            1,
+            1
+          ],
+          "http_status": 200,
+          "user_delta": 20,
+          "token_delta": 20,
+          "request_id": "202609252029423453296028268d9d6CZRSAHls"
+        }
+      },
+      "failover_503": {
+        "status": "PASS",
+        "evidence": {
+          "requests_per_provider": [
+            1,
+            1
+          ],
+          "http_status": 200,
+          "user_delta": 20,
+          "token_delta": 20,
+          "request_id": "202609252029447461774608268d9d6hUyTMFWo"
+        }
+      },
+      "failover_disconnect": {
+        "status": "PASS",
+        "evidence": {
+          "requests_per_provider": [
+            1,
+            1
+          ],
+          "http_status": 200,
+          "user_delta": 20,
+          "token_delta": 20,
+          "request_id": "202609252029469568140188268d9d6Tf39qMGe"
+        }
+      },
+      "failed_request_refund": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "log_secret_scan": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "prompt_body_scan": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "database_log_secret_scan": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "database_prompt_scan": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "user_cannot_read_channels": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "raw_app_logs_not_persisted": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "port_isolation": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "persistence": {
+        "status": "PASS"
+      },
+      "restore": {
+        "status": "PASS"
+      },
+      "restored_user_login": {
+        "status": "PASS"
+      }
+    }
+  },
+  "primary_persistence": {
+    "status": "PASS",
+    "admin_login": "PASS",
+    "snapshot_equal": true
+  },
+  "primary_recovery": {
+    "backup": "PASS",
+    "restore": "PASS",
+    "snapshot_equal": true,
+    "backup_path": "backups\\2026-09-26_04-28-23"
+  },
+  "ui_assets": {
+    "status": "PASS",
+    "assets": [
+      {
+        "path": "/assets/index-BocOaRfR.js",
+        "http_status": 200,
+        "bytes": 8340586
+      },
+      {
+        "path": "/assets/react-core-D-iPSUlg.js",
+        "http_status": 200,
+        "bytes": 163881
+      },
+      {
+        "path": "/assets/semi-ui-BzZ1UhpZ.js",
+        "http_status": 200,
+        "bytes": 1818042
+      },
+      {
+        "path": "/assets/i18n-RrXBN1CV.js",
+        "http_status": 200,
+        "bytes": 60373
+      },
+      {
+        "path": "/assets/tools-PDT6Ig-2.js",
+        "http_status": 200,
+        "bytes": 77436
+      },
+      {
+        "path": "/assets/react-components-BnylIsR_.js",
+        "http_status": 200,
+        "bytes": 27825
+      },
+      {
+        "path": "/assets/semi-ui-yRXI6evF.css",
+        "http_status": 200,
+        "bytes": 582682
+      },
+      {
+        "path": "/assets/index-UfzNzYYF.css",
+        "http_status": 200,
+        "bytes": 672714
+      }
+    ]
+  },
+  "real": {
+    "mode": "real",
+    "model": "gpt-5.4-mini",
+    "results": {
+      "web_ui": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "admin_login": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "model_catalog": {
+        "status": "PASS",
+        "evidence": {
+          "count": 29,
+          "selected": "gpt-5.4-mini"
+        }
+      },
+      "invalid_token": {
+        "status": "PASS",
+        "evidence": {
+          "http_status": 401
+        }
+      },
+      "chat_completions": {
+        "status": "PASS",
+        "evidence": {
+          "http_status": 200
+        }
+      },
+      "usage_and_channel": {
+        "status": "PASS",
+        "evidence": {
+          "request_id": "202609260211381524605788268d9d64e7WbQBy"
+        }
+      },
+      "billing": {
+        "status": "PASS",
+        "evidence": {
+          "expected_quota": 15,
+          "user_delta": 15,
+          "token_delta": 15
+        }
+      },
+      "streaming": {
+        "status": "PASS",
+        "evidence": {
+          "request_id": "202609260211523526894158268d9d6FUjq73dL",
+          "content_event_seconds": [
+            17.672,
+            17.688,
+            17.703,
+            17.719,
+            17.734,
+            17.75,
+            17.797,
+            17.813,
+            17.844,
+            17.859,
+            17.859,
+            17.891,
+            17.922,
+            17.938,
+            17.938,
+            18.047,
+            18.078,
+            18.094,
+            18.125,
+            18.172,
+            18.172,
+            18.188,
+            18.203,
+            18.219,
+            18.25,
+            18.281,
+            18.313,
+            18.328,
+            18.344,
+            18.375,
+            18.438,
+            18.453,
+            18.484,
+            18.484,
+            18.484,
+            18.5,
+            18.547,
+            18.578,
+            18.578,
+            18.578,
+            18.625,
+            18.672,
+            18.672,
+            18.734,
+            18.75,
+            18.844,
+            18.906,
+            18.922,
+            18.938,
+            18.984,
+            19.0,
+            19.031,
+            19.047,
+            19.141,
+            19.141,
+            19.141,
+            19.141,
+            19.141,
+            19.266,
+            19.266,
+            19.297,
+            19.313,
+            19.344,
+            19.359,
+            19.406,
+            19.453,
+            19.516,
+            19.531,
+            19.547,
+            19.609,
+            19.875,
+            19.891,
+            19.906,
+            19.984,
+            20.016,
+            20.063,
+            20.094,
+            20.094,
+            20.203,
+            20.281,
+            20.469,
+            21.0,
+            21.031,
+            21.188,
+            21.234,
+            21.422,
+            21.531,
+            21.547,
+            21.859,
+            21.938,
+            22.031,
+            22.109,
+            22.141,
+            22.141,
+            22.156,
+            22.172,
+            22.188,
+            22.203,
+            22.234,
+            22.25,
+            22.281,
+            22.313,
+            22.359,
+            22.391,
+            22.406,
+            22.422,
+            22.438,
+            22.453,
+            22.453,
+            22.469,
+            22.484,
+            22.5,
+            22.547,
+            22.547,
+            22.563,
+            22.563,
+            22.563,
+            22.563,
+            22.578,
+            22.578,
+            22.578,
+            22.578,
+            22.578,
+            22.578,
+            22.578,
+            22.609,
+            22.609,
+            22.609,
+            22.609,
+            22.609,
+            22.609,
+            22.609,
+            22.609,
+            22.641,
+            22.641,
+            22.641,
+            22.656,
+            22.656,
+            22.656,
+            22.656,
+            22.656,
+            22.656,
+            22.656,
+            22.656,
+            22.656,
+            22.672,
+            22.672,
+            22.672,
+            22.672,
+            22.672,
+            22.672,
+            22.672,
+            22.672,
+            22.672,
+            22.672,
+            22.672,
+            22.672,
+            22.672,
+            22.688
+          ],
+          "end_seconds": 22.688,
+          "done": true,
+          "usage": {
+            "completion_tokens": 174,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 9,
+              "rejected_prediction_tokens": 0
+            },
+            "oaix_settlement_receipt": {
+              "payload": "eyJjb250cmFjdF9rZXkiOiI1YzI5OTM1NTFkYzI2YjBlMjdmMGUyZWZmNmU1MmMyOCIsImlzc3VlZF9hdCI6MTc5MDM4ODczNCwibm9uY2UiOiJhYjQ2ODZlZTBlNzJmMDUwMjY3ODdlMDM5OWNlYjBmYWNmMGE2Nzc4Njg5ZGJmMDZlOWRjMmU5OGVlMGQ0NzJiIiwib3duZXJfaWQiOjEzODM3ODAsInByaWNlX2JwcyI6MjUwLCJwcmljZV9sb2NrZWQiOnRydWUsInByaWNlX2xvY2tlZF9hdCI6IjIwMjYtMDktMjZUMDI6MDg6MjguNzM2MDA4MDE5WiIsInByaWNlX3NvdXJjZSI6Im93bmVyX2RlZmF1bHQiLCJyZXF1ZXN0X2lkIjoiYmUyMDg5OTI3ZDNkZjZjZTQzMTdiMWYxNGRhM2JkM2UiLCJ0b2tlbl9pZCI6MTg0NzYsInYiOjF9",
+              "signatures": [
+                "1023112ef0181caccc05011f46aca50424d899fbe2fdfc9cf1f2eb01327811f8"
+              ]
+            },
+            "prompt_tokens": 21,
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "total_tokens": 195
+          }
+        }
+      },
+      "stream_billing": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "disabled_token": {
+        "status": "PASS",
+        "evidence": {
+          "http_status": 401
+        }
+      },
+      "deleted_token": {
+        "status": "PASS",
+        "evidence": {
+          "http_status": 401
+        }
+      },
+      "responses": {
+        "status": "PASS",
+        "evidence": {
+          "http_status": 200
+        }
+      },
+      "log_secret_scan": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "prompt_body_scan": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "database_log_secret_scan": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "database_prompt_scan": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "user_cannot_read_channels": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "raw_app_logs_not_persisted": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "port_isolation": {
+        "status": "PASS",
+        "evidence": null
+      },
+      "persistence": {
+        "status": "PASS"
+      },
+      "restore": {
+        "status": "PASS"
+      },
+      "restored_user_login": {
+        "status": "PASS"
+      }
+    }
+  },
+  "real_provider_log_secret_scan": {
+    "status": "PASS"
+  },
+  "real_test_price_configuration": {
+    "status": "PASS",
+    "model_count": 29
+  }
+}

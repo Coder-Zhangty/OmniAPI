@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>关于 OmniAPI · 一个接口调用多家大模型</title>
+<meta name="description" content="OmniAPI 把 Claude、GPT、Gemini、Grok、DeepSeek、GLM 等 29 个模型聚合成一个 OpenAI 兼容接口。1 元起充，额度不每日重置、不自动续费，充值经人工核验到账。">
+<link rel="icon" href="/brand/omniapi.svg"><link rel="stylesheet" href="/brand/plans.css"></head>
+<body><header><a class="brand" href="/"><img src="/brand/omniapi.svg" width="34" height="34" alt="">OmniAPI</a><nav><a href="/brand/plans.html">套餐</a><a href="/brand/topup.html">账户充值</a><a href="/pricing">模型价格</a><a href="/console">控制台 ↗</a></nav></header>
+<main><div class="intro"><p class="eyebrow">OMNIAPI / ABOUT</p><h1>一个接口，多家大模型。</h1><p>一个 Key、一个兼容 OpenAI 的地址，即可调用 Claude、GPT、Gemini、Grok、DeepSeek、GLM 等 <strong>29 个模型</strong>。按 token 公开计价，1 元起充。</p></div>
+
+<div class="panel"><h2>为什么用 OmniAPI</h2>
+<ul>
+<li><strong>一个 Key 通六家。</strong>不用在六个平台分别注册、分别充值、分别对账；换模型只改请求里的 <span class="mono">model</span> 字段。</li>
+<li><strong>接入几乎零成本。</strong>兼容 OpenAI 接口，改 <span class="mono">base_url</span> 即可，原有代码不用重写；同时支持 Claude 原生协议与 Responses 协议。</li>
+<li><strong>计价规则公开。</strong>每个模型的输入/输出单价在价格页可查，按实际 token 用量扣费，不按次数收费，没有套餐外的最低消费。</li>
+<li><strong>汇率固定，不玩浮动。</strong>人民币按 <span class="mono">¥6.7489 = US$1</span> 折算额度，不随汇率波动——不会今天一个价明天一个价。</li>
+<li><strong>额度是你自己的。</strong>不每日重置；手动续购，<strong>不自动续费</strong>，不会在你不注意的时候扣款。</li>
+<li><strong>人工核验充值。</strong>扫码付款后由人工核对到账再加额度，不做伪装成"自动到账"的扣款。</li>
+</ul></div>
+
+<div class="panel"><h2>已开放的模型</h2>
+<table class="requests"><thead><tr><th>家族</th><th>代表模型</th><th>输入价（每百万 token）</th></tr></thead><tbody>
+<tr><td>Claude</td><td class="mono">claude-fable-5 / opus-5-5 / sonnet-5 / haiku-4-5</td><td>$0.60 – $6.00</td></tr>
+<tr><td>GPT</td><td class="mono">gpt-6-astra / 5.6-sol / 5.6-terra / 5.6-luna</td><td>$0.02 – $1.00</td></tr>
+<tr><td>Gemini</td><td class="mono">gemini-3.7-flash / 3.1-pro-search / 2.5-flash</td><td>$0.30 – $1.20</td></tr>
+<tr><td>Grok</td><td class="mono">grok-4.5 / 4.6 / 4.7</td><td>$0.24</td></tr>
+<tr><td>DeepSeek</td><td class="mono">deepseek-v4-pro / deepseek-v4-flash</td><td>$1.76 – $5.28</td></tr>
+<tr><td>GLM</td><td class="mono">glm-5.3 / glm-5.3-flash</td><td>$0.06 – $0.28</td></tr>
+</tbody></table>
+<p class="small">完整清单与实时价格见 <a href="/pricing">模型价格</a>。当前开放的是文本模型；图片、语音类模型尚未开通。</p></div>
+
+<div class="panel"><h2>接入信息</h2>
+<table class="requests"><tbody>
+<tr><th>Base URL</th><td class="mono">https://omniapi.biz/v1</td></tr>
+<tr><th>鉴权</th><td class="mono">Authorization: Bearer &lt;你的令牌&gt;</td></tr>
+<tr><th>兼容协议</th><td>OpenAI 兼容；Claude 原生 <span class="mono">/v1/messages</span>；<span class="mono">/v1/responses</span></td></tr>
+<tr><th>可用端点</th><td class="mono">/v1/chat/completions、/v1/messages、/v1/responses、/v1/models</td></tr>
+</tbody></table>
+<p class="small">以上三种协议均已实测可用。任何支持自定义 OpenAI 兼容地址的客户端（ChatBox、Cherry Studio、NextChat、LobeChat 等）填上地址与令牌即可使用。</p></div>
+
+<div class="panel"><h2>如何开始</h2>
+<ol>
+<li>注册账号，在控制台创建一个<strong>令牌</strong>（请勿把令牌或密码发给任何人）。</li>
+<li>充值：打开<a href="/brand/topup.html">账户充值</a>，扫码付款后点「我已付款」提交申请，最低 1 元；也可以直接选<a href="/brand/plans.html">套餐</a>。</li>
+<li>经营者在收款渠道核对到账后，额度<strong>直接计入你的账户</strong>，刷新钱包页即可看到。</li>
+<li>把 Base URL 与令牌填进你的客户端或代码，选择模型开始调用。</li>
+</ol></div>
+
+<div class="panel"><h2>我们不说的话</h2>
+<ul>
+<li>不说"无限量""不限速"——额度按 token 真实扣除，是有限的。</li>
+<li>不说"永久免费""免费额度"——当前没有这项策略。</li>
+<li>不说"99.9% 可用性"——不给出无法兑现的承诺。</li>
+<li>不说"支持图片/语音/视频"——当前只开放文本模型。</li>
+</ul>
+<p class="small">这是一个聚合中转服务：模型本身的能力取决于上游，我们负责接入、计费与稳定性。把话说清楚，比说好听更有用。</p></div>
+
+<div class="panel"><h2>联系与反馈</h2>
+<p>充值、额度、退款或接入问题，请发邮件至 <strong id="contact">3073283716@qq.com</strong>。付款争议或重复付款请附上充值申请编号与付款时间，我们会核对处理。</p>
+<p class="small">全站 HTTPS；数据库与配置每日自动备份；同一笔付款只会入账一次。</p></div>
+</main>
+<footer><a href="/">OmniAPI</a><span>按需使用，清楚计费。</span><a href="/brand/plans.html">查看套餐</a></footer></body></html>

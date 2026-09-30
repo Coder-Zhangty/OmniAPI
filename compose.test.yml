@@ -1,0 +1,20 @@
+# Only used by scripts/acceptance.py --mock in a separate project.
+services:
+  mock-a:
+    init: true
+    image: ${PYTHON_IMAGE:?Run lock-images}
+    command: [python, /fixtures/mock_provider.py]
+    environment:
+      MOCK_NAME: mock-a
+    volumes:
+      - ./tests:/fixtures:ro
+    networks: [gateway-network]
+  mock-b:
+    init: true
+    image: ${PYTHON_IMAGE:?Run lock-images}
+    command: [python, /fixtures/mock_provider.py]
+    environment:
+      MOCK_NAME: mock-b
+    volumes:
+      - ./tests:/fixtures:ro
+    networks: [gateway-network]

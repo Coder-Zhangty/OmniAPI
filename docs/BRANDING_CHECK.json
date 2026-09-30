@@ -1,0 +1,23 @@
+{
+  "system_name": "OmniAPI",
+  "logo": "/brand/omniapi.svg",
+  "server_address": "http://localhost",
+  "assets": {
+    "/brand/omniapi.svg": {
+      "status": 200,
+      "type": "image/svg+xml",
+      "valid_svg": true
+    },
+    "/logo.png": {
+      "status": 200,
+      "type": "image/svg+xml",
+      "valid_svg": true
+    },
+    "/favicon.ico": {
+      "status": 200,
+      "type": "image/svg+xml",
+      "valid_svg": true
+    }
+  },
+  "status": "PASS"
+}

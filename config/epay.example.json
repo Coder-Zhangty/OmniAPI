@@ -1,0 +1,7 @@
+{
+  "pay_address": "https://your-epay-gateway.example.com",
+  "epay_id": "商户ID（服务商后台的 PID）",
+  "epay_key": "商户密钥（服务商后台的 KEY，仅保存在服务端）",
+  "custom_callback_address": "",
+  "note": "推荐在服务器运行 python3 scripts/configure_epay.py --init-secret；pay_address 只填基础地址，不要带 /submit.php。"
+}

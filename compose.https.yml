@@ -1,0 +1,21 @@
+# Production HTTPS overlay for omniapi.biz. Certificates are managed by Certbot.
+services:
+  nginx:
+    ports:
+      - "${GATEWAY_HOST:-127.0.0.1}:443:443"
+    volumes:
+      - ./nginx/https.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/proxy-common.conf:/etc/nginx/proxy-common.conf:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    healthcheck:
+      test: [CMD-SHELL, 'nginx -t']
+  certbot:
+    image: ${CERTBOT_IMAGE:?Run init and lock-images}
+    profiles: [acme]
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}

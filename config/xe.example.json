@@ -1,0 +1,5 @@
+{
+  "account_id": "XE_ACCOUNT_ID",
+  "api_key": "XE_API_KEY",
+  "base_url": "https://xecdapi.xe.com/v1/convert_from.json/"
+}

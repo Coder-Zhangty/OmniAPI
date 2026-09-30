@@ -1,0 +1,28 @@
+[Unit]
+Description=OmniAPI FX snapshot preheat
+Documentation=file:/opt/ai-gateway/docs/SUBSCRIPTIONS_PAYMENTS.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Same account as the recharge service, so the snapshot this writes is readable
+# by the process that has to price with it. Running it as a different user (or as
+# root) creates a root-owned 0600 file the service cannot open.
+User=omniapi-watch
+Group=omniapi
+WorkingDirectory=/opt/ai-gateway
+# Same interpreter and environment as the long-running service, so the snapshot
+# it writes is the one the service reads.
+Environment=TOPUP_WATCH_FX_CACHE=/opt/ai-gateway/runtime/fx-rates.json
+ExecStart=/usr/bin/python3 /opt/ai-gateway/ops/topup_watch/topup_watch.py --refresh-fx
+# Keep the preheat from competing with checkout traffic on a 1 vCPU host.
+CPUQuota=30%
+Nice=10
+IOSchedulingClass=idle
+# A transient network failure must not mark the unit failed and stop the timer;
+# the service keeps serving the last good snapshot and labels its age.
+SuccessExitStatus=0 1
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,19 @@
+:root{--omni-ink:#10231f;--omni-green:#00a878;--omni-mint:#dff7ee;--omni-paper:#f5f2e9}
+body.omni-auth{min-height:100vh;background:radial-gradient(circle at 50% 8%,rgba(0,168,120,.11),transparent 25rem),linear-gradient(135deg,#f8f6ef 0%,#eef7f3 52%,#f8f6ef 100%)!important;color:var(--omni-ink);font-family:'SimSun','宋体','Songti SC',serif!important}
+.omni-auth,.omni-auth *,.omni-auth *:before,.omni-auth *:after{font-family:'SimSun','宋体','Songti SC',serif!important}
+.omni-auth-card{position:relative!important;border:1px solid rgba(16,35,31,.1)!important;border-radius:28px!important;background:rgba(255,255,255,.9)!important;box-shadow:0 28px 80px rgba(18,55,46,.13)!important;backdrop-filter:blur(18px);padding:clamp(24px,4vw,42px)!important;animation:omni-rise .55s cubic-bezier(.2,.8,.2,1) both}
+.omni-auth-card:before{content:'OmniAPI 安全登录';display:block;font-size:14px;font-weight:700;letter-spacing:.08em;color:var(--omni-green);margin-bottom:14px}
+.omni-auth input{border-radius:14px!important;min-height:48px!important;background:#fbfcfa!important;border-color:rgba(16,35,31,.15)!important;transition:border-color .18s,box-shadow .18s,transform .18s}
+.omni-auth input:focus{border-color:var(--omni-green)!important;box-shadow:0 0 0 4px rgba(0,168,120,.12)!important;transform:translateY(-1px)}
+.omni-aff-field{display:grid;gap:7px}.omni-aff-field label{font-size:14px;font-weight:600;color:var(--omni-ink)}.omni-aff-field input{width:100%;padding:0 14px}.omni-aff-field p{margin:0;color:#60746e;font-size:12px;line-height:1.55}
+.omni-auth-card button[type=submit],.omni-auth-card button:not([disabled]){border-radius:14px!important;min-height:46px}
+.omni-auth-card button[type=submit]{background:var(--omni-ink)!important;border-color:var(--omni-ink)!important;font-weight:700!important;letter-spacing:.03em}
+.omni-auth-note{margin:12px 0 0;color:#60746e;font-size:12px;line-height:1.6;text-align:center}
+.omni-oauth{margin-top:20px;padding-top:18px;border-top:1px solid rgba(16,35,31,.1)}
+.omni-oauth-title{display:flex;align-items:center;gap:10px;color:#71827d;font-size:12px;margin-bottom:12px}.omni-oauth-title:before,.omni-oauth-title:after{content:'';height:1px;flex:1;background:rgba(16,35,31,.1)}
+.omni-oauth-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.omni-oauth-grid button{min-width:0!important;background:#f6f8f6!important;border:1px solid rgba(16,35,31,.1)!important;color:#6c7b77!important;font-size:12px!important;cursor:not-allowed!important}
+.omni-auth [class*=turnstile],.omni-auth iframe[src*='challenges.cloudflare.com']{max-width:100%!important}.omni-auth iframe[src*='challenges.cloudflare.com']{border-radius:12px}
+
+@keyframes omni-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:1000px){.omni-auth-card{margin-inline:auto!important}}
+@media(prefers-reduced-motion:reduce){.omni-auth-card{animation:none!important}.omni-auth *{transition:none!important}}

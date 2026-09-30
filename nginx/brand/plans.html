@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>套餐与付款 · OmniAPI</title><link rel="icon" href="/brand/omniapi.svg"><link rel="stylesheet" href="/brand/plans.css"></head>
+<body><header><a class="brand" href="/"><img src="/brand/omniapi.svg" width="34" height="34" alt="">OmniAPI</a><nav><a href="/brand/topup.html">账户充值</a><a href="/pricing">模型价格</a><a href="/brand/about.html">关于</a><a href="/wallet">我的订阅 ↗</a></nav></header>
+<main><div class="intro"><p class="eyebrow">OMNIAPI / PLANS</p><h1>选择适合你的用量。</h1><p>一个账户，按模型实际用量消费。固定额度，手动续购。</p></div>
+<div class="layout"><section aria-labelledby="plans-title"><h2 id="plans-title">选择套餐</h2><fieldset id="plans"><legend class="sr-only">套餐类型</legend><p>正在加载套餐…</p></fieldset>
+<div class="terms"><h2>每份套餐都包含</h2><ul><li>使用当前已开放的文本模型，费用按模型价格扣除。</li><li>有效期从管理员开通时开始，额度不每日重置。</li><li>到期未用完额度失效，不结转、不自动续费。</li><li>扫码付款后人工核验，核实到账后开通。</li></ul><p id="fx-note"></p><p>套餐额度不是固定 Token 数；不同模型可用的 Token 数不同。</p></div></section>
+<aside aria-labelledby="payment-title"><span class="step">付款与开通</span><h2 id="payment-title">先确认，再付款。</h2><p id="availability" role="status">正在检查付款信息。</p>
+<div id="checkout" hidden><div class="total"><span id="chosen-plan"></span><strong id="chosen-price"></strong></div>
+<label for="user-id">本站用户 ID <a href="/console/personal" target="_blank" rel="noopener">查看账号 ↗</a></label><input id="user-id" type="text" inputmode="numeric" pattern="[1-9][0-9]*" maxlength="12" placeholder="填写你的数字用户 ID" autocomplete="off">
+<p class="small">先联系客服确认账户与套餐。请勿将密码或 API Key 发给任何人。</p><button id="show-qr" type="button" disabled>查看收款码</button>
+<div id="qr-section" hidden><img id="payment-qr" src="/brand/payment-qr.png" alt="经营者提供的聚合收款码，支持微信与支付宝" loading="lazy"><p class="small" id="merchant-row" hidden>商户编号：<span id="merchant-id"></span>。付款前核对手机收款页面。</p><a class="download" href="/brand/payment-qr.png" target="_blank" rel="noopener">查看完整收款码 ↗</a><p><strong>请支付准确金额，并保留交易单号。</strong></p>
+<label for="transaction">付款后的交易单号</label><input id="transaction" type="text" maxlength="100" autocomplete="off" placeholder="核验到账使用，非登录信息"><button id="copy-request" type="button" disabled>复制开通申请</button><p id="copy-status" class="small" role="status"></p><textarea id="request-text" aria-label="开通申请内容" readonly hidden></textarea><p class="small">复制申请不会自动提交或开通。请发送给下方客服，待核实到账后查看订阅。</p></div>
+<div class="contact"><span>人工客服</span><strong id="contact"></strong><p class="small">同一笔付款仅开通一次。付款争议、重复付款或退款请联系上述客服核对处理。</p></div></div></aside></div>
+<footer><a href="/">OmniAPI</a><span>按需使用，清楚计费。</span><a href="/wallet">返回钱包</a></footer></main><script src="/brand/plans.js" defer></script></body></html>

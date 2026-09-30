@@ -1,0 +1,34 @@
+# Compile-check only. The real image comes from upstream's own Dockerfile.
+#
+# Why this exists: the production build runs bun install + vite build (the slow
+# part) before it ever reaches the Go compiler. If the patch has a syntax or
+# type error we want to know in ~10 minutes, not after a full frontend build.
+# `web/dist` is stubbed because main.go uses //go:embed on it.
+FROM golang:1.26.1-alpine
+
+ENV GO111MODULE=on \
+    CGO_ENABLED=0 \
+    GOWORK=off \
+    GOEXPERIMENT=greenteagc \
+    GOOS=linux \
+    GOARCH=amd64 \
+    GOPROXY=https://goproxy.cn,direct \
+    GOSUMDB=off
+
+WORKDIR /build
+ADD go.mod go.sum ./
+ADD relaykit/go.mod ./relaykit/go.mod
+RUN go mod download
+
+COPY . .
+# Build first: a failure here is the signal that matters. `go vet` then reports
+# separately, so a pre-existing upstream vet complaint can never be mistaken for
+# a broken patch, and can never mask a successful compile either.
+RUN mkdir -p web/dist \
+ && printf '<!doctype html><title>compile-check stub</title>\n' > web/dist/index.html \
+ && go build -ldflags "-s -w -X 'github.com/QuantumNous/new-api/common.Version=compile-check'" -o /tmp/new-api-check . \
+ && echo "COMPILE-CHECK: BUILD OK" \
+ && ls -la /tmp/new-api-check \
+ && (go vet ./common/... ./model/... ./controller/... \
+     && echo "COMPILE-CHECK: VET CLEAN" \
+     || echo "COMPILE-CHECK: VET REPORTED ISSUES (not fatal)")
