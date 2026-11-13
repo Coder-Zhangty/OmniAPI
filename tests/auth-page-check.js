@@ -29,12 +29,20 @@ const PAGE = `<!doctype html><html><body><div id="root"><form>
   <a href="/forgot-password">忘记密码？</a>
   <div class="cf-turnstile"></div>
   <button type="submit">登录</button>
+  <button type="button" data-native-github>GitHub</button>
 </form></div></body></html>`;
 
 function open(url = 'https://omniapi.biz/sign-in') {
   const dom = new JSDOM(PAGE, { url, runScripts: 'outside-only' });
   const w = dom.window;
   const state = { resets: 0, urls: [] };
+  const observers = [];
+  const NativeObserver = w.MutationObserver;
+  w.MutationObserver = class extends NativeObserver {
+    constructor(callback) { super(callback); observers.push(this); }
+  };
+  const close = w.close.bind(w);
+  w.close = () => { observers.forEach(observer => observer.disconnect()); close(); };
   w.turnstile = { reset() { state.resets++; } };
   // 记录每一次真实的请求 URL，用来证明我们没有改写它。
   w.fetch = async (input, init) => {
@@ -66,9 +74,14 @@ function open(url = 'https://omniapi.biz/sign-in') {
     check('邮箱输入框被改成 email 类型', d.querySelector('input[name=username]').type, 'email');
     check('注入了说明文案',
       (d.querySelector('.omni-auth-note') || {}).textContent,
-      '仅支持邮箱和密码登录 · 人机验证令牌单次有效');
-    check('注入了快捷登录占位',
-      (d.querySelector('.omni-oauth-title') || {}).textContent, '快捷登录即将开放');
+      '可使用邮箱密码或已启用的快捷登录方式');
+    check('不再注入禁用的快捷登录占位', d.querySelectorAll('.omni-oauth').length, 0);
+    const github = d.querySelector('[data-native-github]');
+    let githubClicks = 0;
+    github.addEventListener('click', () => githubClicks++);
+    github.click();
+    check('未填写邮箱也能进入原生 GitHub 授权', githubClicks, 1);
+    check('原生 GitHub 按钮保持可用', github.disabled, false);
     check('「用户名」字样被改成「邮箱」',
       d.querySelector('label').textContent, '邮箱');
     w.close();
@@ -122,6 +135,7 @@ function open(url = 'https://omniapi.biz/sign-in') {
     check('/register 是登录页', w.OmniAuth.isAuthPage(), true);
     w.history.pushState({}, '', '/console');
     check('/console 不是登录页', w.OmniAuth.isAuthPage(), false);
+    await sleep(0);
     w.close();
   }
 

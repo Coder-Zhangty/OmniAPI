@@ -186,11 +186,12 @@ function pendingRow(row){
   const net=document.createElement('input');
   net.type='number';net.min='0.01';net.step='0.01';net.placeholder=`净到账 ${row.currency||'CNY'}`;
   net.value=row.quote_id?(row.quoted_amount||''):'';
+  const paidAt=document.createElement('input');paidAt.type='datetime-local';paidAt.step='1';paidAt.setAttribute('aria-label','已核实付款时间（北京时间）');paidAt.title='填写交易凭据上的付款成功时间（北京时间）；无法核实时留空，本金正常到账，赠额待核验';
   const issue=document.createElement('button'); issue.type='button'; issue.textContent='核实到账，加额度';
-  issue.addEventListener('click',()=>fulfill(row,net.value,str=>issue.textContent=str));
+  issue.addEventListener('click',()=>fulfill(row,net.value,str=>issue.textContent=str,paidAt.value));
   const skip=document.createElement('button'); skip.type='button'; skip.textContent=row.escalated_at?'撤回受理':'忽略';
   skip.addEventListener('click',()=>dismiss(row,str=>skip.textContent=str));
-  wrap.append(input,net,issue,skip);
+  wrap.append(input,net,paidAt,issue,skip);
   actions.append(wrap);
   tr.append(actions);
   return tr;
@@ -200,11 +201,11 @@ function fail(error){
   $('board-status').textContent=String(error.message||error);
 }
 
-async function fulfill(row,netReceived,label){
+async function fulfill(row,netReceived,label,paidAt){
   if(row.quote_id&&(!netReceived||Number(netReceived)<=0)){fail(Error('请填写实际净到账金额'));return;}
   if(!confirm('确认真实到账后再入账。\n\n申请 '+row.id+'\n账号 '+accountLabel(row)+'\n支付方式 '+(row.method||'人民币扫码')+'\n实际净到账 '+(row.quote_id?amountLabel(netReceived,row.currency):money(row.cny))+'\n\n点「确定」将立即把折算额度加到用户钱包。')) return;
   label('入账中…');
-  const body={id:row.id,transaction:typedTransactions.get(row.id)||'',net_received:row.quote_id?netReceived:null};
+  const body={id:row.id,transaction:typedTransactions.get(row.id)||'',net_received:row.quote_id?netReceived:null,paid_at:paidAt||null};
   try{
     let result;
     try{
@@ -251,7 +252,7 @@ function showResult(row,payload){
     $('result-note').textContent=`账号 ${accountLabel(row)}，净到账 ${payload.net_received||row.cny} ${row.currency||'CNY'}，折算 US$${payload.credited_usd||row.usd}，额度 ${payload.quota||row.quota}，交易单号 ${payload.transaction||row.id}。`;
     $('result-status').textContent='兑换码只显示这一次，请立刻复制并发给用户。';
   }else if(verified){
-    $('result-note').textContent=`${accountLabel(row)} 的额度已直接入账：${payload.quota_before} → ${payload.quota_after}（+${payload.quota||row.quota}）。用户刷新钱包页就能看到，不需要做任何操作。`;
+    $('result-note').textContent=`${accountLabel(row)} 的充值已到账：本金 US$${(Number(payload.quota||row.quota)/500000).toFixed(6)}，赠额 US$${(Number(payload.bonus||0)/500000).toFixed(6)}，总到账 US$${((Number(payload.quota||row.quota)+Number(payload.bonus||0))/500000).toFixed(6)}。${payload.promotion_state==='pending_payment_time'?'活动赠额待核验付款时间。':''}`;
     $('result-status').textContent='已到账。可以把下面的说明发给用户告知一声。';
   }else{
     $('result-note').textContent='管理接口返回成功，但读到的余额没有变成期望值。请到后台核对该用户额度；本次已记入台账，重复入账会被拒绝。';

@@ -91,7 +91,7 @@ class ParsingTests(unittest.TestCase):
     def test_summary_totals_and_groupings(self):
         rows = backfill.parse_rows('\n'.join([
             self.ROW,
-            '5|750482476@qq.com|gpt-5.4|1790398800|default|3|1|2|1215|9435',
+            '5|support@example.com|gpt-5.4|1790398800|default|3|1|2|1215|9435',
             '4|KiKi|grok-4.5|1790398800|default|11|1|1|100|7',
         ]))
         summary = backfill.summarise(rows)

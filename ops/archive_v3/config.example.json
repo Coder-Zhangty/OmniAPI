@@ -1,0 +1,11 @@
+{
+  "public_origin": "https://omniapi.biz",
+  "gateway_url": "https://omniapi.biz",
+  "ingest_token": "REPLACE_WITH_A_RANDOM_64_HEX_CHARACTER_SECRET",
+  "google_client_id": "",
+  "google_client_secret": "",
+  "google_redirect_uri": "https://omniapi.biz/archive-v3/api/oauth/callback",
+  "min_free_bytes": 268435456,
+  "max_local_bytes": 5000000000,
+  "evict_verified": true
+}

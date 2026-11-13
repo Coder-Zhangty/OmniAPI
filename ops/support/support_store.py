@@ -339,7 +339,7 @@ class SupportIndex:
         for field, value, allowed in (('category', category, CATEGORIES),
                                       ('status', status, STATUSES),
                                       ('priority', priority, PRIORITIES)):
-            if value in allowed:
+            if value in allowed or (field == 'category' and re.fullmatch(r'cat_[0-9a-f]{12}', str(value or ''))):
                 where.append(field + '=?'); args.append(value)
         if unread:
             where.append('unread_operator>0')
@@ -408,6 +408,7 @@ class ConversationStore:
         self.conversations = {}
         self.messages = {}
         self.condition = threading.Condition(self.lock)
+        self.category_ids = set(CATEGORIES)
         # Bumped on every appended timeline event. Waiters compare it against the
         # revision they read their snapshot at, which is what makes the
         # fetch-then-wait sequence free of lost wakeups: a message that lands
@@ -538,7 +539,22 @@ class ConversationStore:
         return None
 
     def get(self, conv_id):
-        return self.conversations.get(conv_id)
+        with self.lock:
+            if conv_id in self.conversations:
+                return self.conversations[conv_id]
+            if not CONV_ID.fullmatch(str(conv_id or '')):
+                return None
+            db = self.index._open()
+            try:
+                row = db.execute('SELECT * FROM tickets WHERE id=?', (conv_id,)).fetchone()
+            finally:
+                db.close()
+            if row is None:
+                return None
+            self.evict()
+            self.conversations[conv_id] = dict(row)
+            self.messages[conv_id] = self.index.messages(conv_id)
+            return self.conversations[conv_id]
 
     def snapshot(self, conv_id, since_seq=0):
         """New messages plus the revision they belong to, read atomically.
@@ -618,7 +634,7 @@ class ConversationStore:
             if len(self.conversations) >= self.max_conversations:
                 raise ValueError('客服会话已达上限，请稍后再试或发邮件联系')
             conv_id = new_conversation_id()
-            if category not in CATEGORIES:
+            if category not in self.category_ids:
                 raise ValueError('工单分类无效')
             if priority not in PRIORITIES:
                 raise ValueError('工单优先级无效')
@@ -726,7 +742,7 @@ class ConversationStore:
                     raise ValueError('工单标题为 1–120 字')
                 clean['subject'] = subject
             if 'category' in values:
-                if values['category'] not in CATEGORIES:
+                if values['category'] not in self.category_ids:
                     raise ValueError('工单分类无效')
                 clean['category'] = values['category']
             if 'priority' in values:

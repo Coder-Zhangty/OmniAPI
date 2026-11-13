@@ -187,18 +187,20 @@ class PaymentMethodConfigTests(ServiceTestCase):
 
 class CnyRateTests(ServiceTestCase):
     def test_a_usable_snapshot_prices_the_order_and_is_labelled(self):
-        self.seed_snapshot('2026-09-27T04:00:00+00:00', cny='6.80')
+        as_of = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=2)).isoformat()
+        self.seed_snapshot(as_of, cny='6.80')
         quote = self.service.quote({'method': 'cny-qr', 'amount': '100'})
         self.assertEqual(Decimal(quote['fx_rate']), Decimal('6.80'))
         self.assertIn('东方财富', quote['fx_source'])
         self.assertNotIn('fx_note', quote)
 
     def test_an_old_quote_is_labelled_as_the_latest_published_one(self):
-        self.seed_snapshot('2026-09-24T08:00:00+00:00', cny='6.80')
+        as_of = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=24)).isoformat()
+        self.seed_snapshot(as_of, cny='6.80')
         quote = self.service.quote({'method': 'cny-qr', 'amount': '100'})
         self.assertEqual(Decimal(quote['fx_rate']), Decimal('6.80'))
         self.assertIn('最新已公布报价', quote['fx_source'])
-        self.assertEqual(quote['fx_as_of'], '2026-09-24T08:00:00+00:00')
+        self.assertEqual(quote['fx_as_of'], as_of)
         self.assertNotIn('fx_note', quote)
 
     def test_a_broken_feed_falls_back_to_the_declared_rate_and_says_so(self):

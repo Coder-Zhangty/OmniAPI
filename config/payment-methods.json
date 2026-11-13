@@ -8,10 +8,10 @@
       "title": "Payoneer",
       "currency": "USD",
       "minimum": "20",
-      "enabled": true,
+      "enabled": false,
       "sort": 20,
       "link": "https://link.payoneer.com/Token?t=8C651F65FAFF4ADB889DA1C30C3F2B1E&src=pl",
-      "qr_path": "/brand/payoneer-qr.png",
+      "qr_path": "",
       "instructions": "仅收 USD，付款后填写 Payoneer 交易参考号。"
     },
     {

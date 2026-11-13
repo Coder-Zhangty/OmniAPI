@@ -16,7 +16,7 @@
       const link = document.createElement('a');
       link.id = LINK_ID;
       link.href = '/brand/topup.html';
-      link.textContent = '前往扫码充值 · 收款到账可能延迟约 5 分钟 →';
+      link.textContent = '前往充值 →';
       link.style.cssText = [
         'color:#009f72',
         'font-weight:600',

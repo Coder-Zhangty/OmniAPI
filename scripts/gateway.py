@@ -441,7 +441,7 @@ def validate_backup(dest):
     return dest
 
 
-def restore(source, port):
+def restore(source, port, new_api_image=None, isolate_network=False, verify_admin=True):
     source = validate_backup(source)
     project = "gw-restore-" + dt.datetime.now().strftime("%Y%m%d%H%M%S")
     dest = ROOT / "runtime" / project
@@ -451,6 +451,20 @@ def restore(source, port):
     values = env_read(dest)
     values.update(COMPOSE_PROJECT_NAME=project, GATEWAY_PORT=str(port),
                   GATEWAY_HOST="127.0.0.1", GATEWAY_PUBLIC_URL="", COMPOSE_OVERLAY="")
+    if new_api_image is not None:
+        if not re.fullmatch(r"sha256:[a-f0-9]{64}", new_api_image):
+            raise ValueError("Recovery image must be an immutable Docker image ID")
+        loaded = run([docker(), "image", "inspect", new_api_image, "--format", "{{.Id}}"])
+        if loaded.decode().strip() != new_api_image:
+            raise ValueError("Recovery image identity mismatch")
+    if new_api_image is not None or isolate_network:
+        overlay = "services:\n  new-api:\n    environment:\n      OMNI_ARCHIVE_ENABLED: 'false'\n"
+        if new_api_image is not None:
+            overlay += "    image: " + new_api_image + "\n"
+        if isolate_network:
+            overlay += "networks:\n  gateway-network:\n    internal: true\n"
+        (dest / "compose.restored-image.yml").write_text(overlay)
+        values["COMPOSE_OVERLAY"] = "compose.restored-image.yml"
     env_write(values, dest)
     stack = Stack(dest)
     stack.require_locked()
@@ -463,6 +477,11 @@ def restore(source, port):
     with (source / "data.tar").open("rb") as file:
         run([docker(), "cp", "-", container + ":/data"], stdin=file)
     stack.start()
+    if not verify_admin:
+        write_json(dest / "restore-result.json", {"status": "DATA_RESTORED_AWAITING_ADMIN_VERIFICATION", "admin_login": False,
+                   "url": stack.url, "project": project})
+        print("Data restored in isolated project; administrator verification required: " + project)
+        return stack
     api = API(stack.url)
     api.login(credentials(dest, "admin"))
     snapshot = {"users": api.ok("/api/user/?p=1&page_size=100"),

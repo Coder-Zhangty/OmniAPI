@@ -41,7 +41,7 @@ class PublicReachabilityTests(unittest.TestCase):
             self.assertFalse(configure_epay.publicly_reachable(host), host)
 
     def test_public_host_and_172_outside_private_range_are_reachable(self):
-        for host in ('https://api.example.com', 'http://160.202.46.77',
+        for host in ('https://api.example.com', 'http://203.0.113.10',
                      'http://172.32.0.1', 'http://8.8.8.8'):
             self.assertTrue(configure_epay.publicly_reachable(host), host)
 
@@ -109,7 +109,7 @@ class BlockedReasonTests(unittest.TestCase):
 
 class WarningTests(unittest.TestCase):
     def test_http_ip_and_placeholder_methods_are_flagged(self):
-        options = {'ServerAddress': 'http://160.202.46.77',
+        options = {'ServerAddress': 'http://203.0.113.10',
                    'PayMethods': json.dumps([{'name': '自定义1', 'type': 'custom1'}])}
         notes = configure_epay.warnings({}, options)
         joined = ' '.join(notes)

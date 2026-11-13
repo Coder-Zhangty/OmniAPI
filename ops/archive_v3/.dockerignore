@@ -1,0 +1,6 @@
+**
+!Dockerfile
+!*.py
+!web/
+!web/dist/
+!web/dist/**

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="referrer" content="same-origin">
+  <meta name="omni-image-studio-release" content="20261107">
+  <title>图片工作台 · OmniAPI</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/brand/image-studio-v20261107.css">
+  <script defer src="/brand/image-studio-v20261107.js?v=2"></script>
+</head>
+<body>
+<svg class="icon-sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+ <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-8 9 8v11H3z"/><path d="M9 21v-8h6v8"/></symbol>
+ <symbol id="i-image" viewBox="0 0 24 24"><rect x="2.5" y="3" width="19" height="18" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 6-6 4 4 3-4 5 6"/></symbol>
+ <symbol id="i-layers" viewBox="0 0 24 24"><path d="m2 7 10-5 10 5-10 5zM2 12l10 5 10-5M2 17l10 5 10-5"/></symbol>
+ <symbol id="i-log" viewBox="0 0 24 24"><rect x="5" y="2" width="15" height="20" rx="2"/><path d="M2 5h3M2 9h3M2 13h3M2 17h3M9 7h7M9 11h7M9 15h5"/></symbol>
+ <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M20 7V4a2 2 0 0 0-2-2L4 5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16V7H4"/><path d="M20 11h-6v6h6"/><path d="M16 14h.01"/></symbol>
+ <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 3h7v7M21 3 10 14M10 3H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-6"/></symbol>
+ <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12"/></symbol>
+ <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9 8a3 3 0 1 1 5 3c-1 1-2 1-2 3M12 17h.01"/></symbol>
+ <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+ <symbol id="i-wand" viewBox="0 0 24 24"><path d="m4 20 12-12 3 3L7 23zM12 12l3 3M5 3v5M2.5 5.5h5M17 1v4M15 3h4M20 15v5M17.5 17.5h5"/></symbol>
+ <symbol id="i-paperclip" viewBox="0 0 24 24"><path d="m9 16 8-8a3 3 0 0 0-4-4L4 13a5 5 0 0 0 7 7l10-10M7 14l8-8"/></symbol>
+ <symbol id="i-cube" viewBox="0 0 24 24"><path d="m12 1 10 6v11l-10 5-10-5V7zM2 7l10 6 10-6M12 13v10M7 4l10 6"/></symbol>
+ <symbol id="i-expand" viewBox="0 0 24 24"><path d="M9 3H3v6M15 3h6v6M21 15v6h-6M9 21H3v-6"/></symbol>
+ <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 2v13m-5-5 5 5 5-5M3 15v6h18v-6"/></symbol>
+ <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+ <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
+ <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-7-7 7 7-7 7"/></symbol>
+ <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="m12 1 2.5 7.5L22 11l-7.5 2.5L12 21l-2.5-7.5L2 11l7.5-2.5zM3 1v5M.5 3.5h5M20 18v5m-2.5-2.5h5"/></symbol>
+ <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+</defs></svg>
+<div class="app">
+ <aside class="sidebar" aria-label="主导航">
+  <a class="brand" href="/" aria-label="OmniAPI 首页"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">OmniAPI</span></a>
+  <p class="nav-label">创作工具</p>
+  <nav class="nav">
+   <a class="nav-link" href="/dashboard"><svg><use href="#i-home"/></svg><span>概览</span></a>
+   <a class="nav-link active" href="#" aria-current="page"><svg><use href="#i-image"/></svg><span>网页生图</span></a>
+   <a class="nav-link" href="/pricing"><svg><use href="#i-layers"/></svg><span>模型市场</span></a>
+   <a class="nav-link" href="/usage-logs"><svg><use href="#i-log"/></svg><span>使用日志</span></a>
+   <a class="nav-link" href="/wallet"><svg><use href="#i-wallet"/></svg><span>钱包</span></a>
+  </nav>
+  <div class="sidebar-bottom">
+   <div class="sidebar-divider"></div>
+   <nav class="nav"><a class="nav-link" href="/brand/connect.html" target="_blank" rel="noopener"><svg><use href="#i-external"/></svg><span>客户端接入</span></a><a class="nav-link" href="/brand/support.html" target="_blank" rel="noopener"><svg><use href="#i-help"/></svg><span>帮助与反馈</span></a></nav>
+   <div class="sidebar-divider"></div><a class="account" id="account-link" href="/sign-in?redirect=%2Fbrand%2Fimage-studio.html"><i class="avatar" aria-hidden="true"></i><span class="account-name" id="identity">正在确认…</span><svg><use href="#i-chevron"/></svg></a>
+  </div>
+ </aside>
+ <header class="header"><div class="heading"><h1>图片工作台</h1><span class="tagline">让想象成为画面</span></div><div class="header-actions"><a class="guide" href="/brand/connect.html" target="_blank" rel="noopener">接入指南<svg><use href="#i-arrow-up"/></svg></a><a href="/wallet" aria-label="个人账户"><i class="avatar" aria-hidden="true"></i></a></div></header>
+ <section class="inspector" aria-label="图片生成设置">
+  <div class="segments" role="tablist" aria-label="创作模式"><button class="segment" type="button" id="generate-tab" role="tab" aria-selected="true" aria-controls="creation-form" tabindex="0">生成图片</button><button class="segment unavailable" type="button" id="edit-tab" title="先读取支持图片修改的型号" role="tab" disabled aria-selected="false" aria-controls="creation-form" tabindex="-1">修改图片</button></div>
+  <form id="creation-form">
+   <label for="prompt" class="label">描述画面</label>
+   <div class="prompt-wrap"><textarea id="prompt" maxlength="32000" spellcheck="false" required>一只冰蓝色陶瓷花瓶，放在米白色石台上。午后阳光穿过窗户，柔和阴影，简洁的产品摄影。</textarea><div class="prompt-tools"><button class="polish unavailable" type="button" id="polish" title="润色单独按文本用量计费" disabled><svg><use href="#i-wand"/></svg>润色描述</button><button class="undo-polish" id="undo-polish" type="button" hidden>撤销润色</button><span class="char-count"><span id="char-count">0</span> / 32000</span></div></div>
+   <input type="file" id="reference-file" accept="image/png,image/jpeg,image/webp" hidden><button class="reference-upload unavailable" type="button" id="reference-upload" title="上传本地PNG、JPEG或WebP参考图" disabled><svg id="attachment-icon"><use href="#i-paperclip"/></svg><img class="reference-thumb" id="reference-thumb" alt="本地参考图" hidden><span id="reference-label">添加参考图</span><span class="optional">可选</span></button>
+   <button class="reference-remove" id="reference-remove" type="button" hidden>移除参考图</button><p class="capability-note" id="capability-note" role="status"></p><div class="model-field"><label class="label" for="model">图片模型</label><div class="select-wrap has-icon"><svg class="leading-icon"><use href="#i-cube"/></svg><select id="model" disabled><option value="">读取模型中…</option></select></div></div>
+   <div class="ratio-field"><span class="label" id="ratio-label">画面比例</span><div class="ratio-grid" role="group" aria-labelledby="ratio-label"><button class="ratio" type="button" data-ratio="1:1" aria-pressed="true"><i class="ratio-symbol" aria-hidden="true"></i><span>1:1</span></button><button class="ratio" type="button" data-ratio="3:2" aria-pressed="false"><i class="ratio-symbol" aria-hidden="true"></i><span>3:2</span></button><button class="ratio" type="button" data-ratio="2:3" aria-pressed="false"><i class="ratio-symbol" aria-hidden="true"></i><span>2:3</span></button><button class="ratio" type="button" data-ratio="16:9" aria-pressed="false"><i class="ratio-symbol" aria-hidden="true"></i><span>16:9</span></button></div></div>
+   <div class="field-pair"><div><label class="label" for="size">尺寸</label><div class="select-wrap"><select id="size" disabled></select></div></div><div><label class="label" for="quality">画质</label><div class="select-wrap"><select id="quality" disabled></select></div></div></div>
+   <details class="advanced"><summary>高级设置<svg><use href="#i-chevron"/></svg></summary><div class="advanced-content"><p>每次生成 1 张 PNG；仅提供当前已验收的型号和规格。</p><p>参考图、润色和先读取支持图片修改的型号。</p><div id="extra-options" hidden><label for="service-tier">服务档位</label><select id="service-tier"></select></div></div></details>
+   <div class="billing"><div class="cost-row"><span>预计费用</span><strong class="price quote-note" id="price">读取报价中…</strong></div><button class="generate" id="generate" type="submit" disabled><svg><use href="#i-sparkles"/></svg><span>生成图片</span><span class="shortcut" aria-hidden="true">⌘ ↵</span></button><p class="billing-note">按实际生成结果结算</p><p class="live-status" id="status" role="status" aria-live="polite"></p><a class="usage-link" id="usage-link" href="/usage-logs" hidden>查看调用记录</a></div>
+  </form>
+ </section>
+ <main class="workspace" aria-label="生成结果">
+  <div class="toolbar"><p class="result-state" data-state="pending"><span class="status-dot" aria-hidden="true"></span><span id="result-state">示例预览</span></p><div class="toolbar-actions"><button class="tool-button" type="button" id="expand"><svg><use href="#i-expand"/></svg>放大查看</button><button class="tool-button" type="button" id="download" disabled title="生成图片后即可下载"><svg><use href="#i-download"/></svg>下载 PNG</button></div></div>
+  <section class="canvas-stage" aria-label="图片预览"><div class="artwork" id="artwork" role="img" tabindex="0" aria-label="冰蓝色陶瓷花瓶与橙色浆果枝，放在石台上，午后光影"></div><p class="image-meta sample-label" id="image-meta">效果示例 · 生成后显示实际尺寸与画质</p><div class="zoom" aria-label="预览缩放"><button type="button" id="zoom-out" aria-label="缩小"><svg><use href="#i-minus"/></svg></button><output id="zoom-level">100%</output><button type="button" id="zoom-in" aria-label="放大"><svg><use href="#i-plus"/></svg></button></div></section>
+  <section class="session-results" aria-label="本次结果"><h2 class="session-title">本次结果</h2><button class="thumbnail" type="button" id="thumbnail" aria-label="当前为效果示例，尚未生成图片" aria-pressed="true"><span class="thumbnail-picture"></span></button></section>
+  <div class="followup-area"><form class="followup" id="followup-form"><input id="followup" aria-label="继续修改图片" placeholder="继续修改：比如「把花瓶换成白色」" autocomplete="off" disabled title="先读取支持图片修改的型号"><button type="submit" aria-label="提交修改" disabled title="先读取支持图片修改的型号"><svg><use href="#i-arrow"/></svg></button></form><p class="retention-note">图片仅在当前页面保留，请及时下载</p></div>
+ </main>
+</div>
+<dialog class="lightbox" id="lightbox" aria-label="放大查看图片"><button class="lightbox-close" type="button" aria-label="关闭预览"><svg><use href="#i-close"/></svg></button><div class="artwork" role="img" aria-label="图片放大预览"></div></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+
+</body>
+</html>

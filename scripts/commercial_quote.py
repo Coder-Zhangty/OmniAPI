@@ -1,11 +1,10 @@
 """Build a reviewable retail price proposal; never changes live billing."""
 import argparse
 import json
-from decimal import Decimal, ROUND_CEILING, ROUND_DOWN
+from decimal import Decimal, ROUND_DOWN
 from pathlib import Path
 
 QUOTA_PER_UNIT = 500000
-RETAIL_PRICE_STEP = Decimal('0.01')
 
 
 def positive(value, name):
@@ -29,7 +28,7 @@ def quota_from_usd(usd):
 
 def quote(config, required_models):
     fx = positive(config.get('cny_per_usd'), 'cny_per_usd')
-    if Decimal(str(config.get('markup'))) != 2:
+    if Decimal(str(config.get('markup'))) != Decimal('2'):
         raise ValueError('Approved markup is 2')
     missing = sorted(set(required_models) - set(config.get('models', {})))
     if missing:
@@ -40,13 +39,11 @@ def quote(config, required_models):
         if cost.get('currency') not in ('USD', 'CNY'):
             raise ValueError('Each model cost requires currency USD or CNY')
         divisor = fx if cost['currency'] == 'CNY' else Decimal(1)
-        # Public prices are shown with at most two decimals.  Round upward so
-        # the displayed amount is also the exact billed amount and never drops
-        # below the approved supplier-cost x 2 floor.
-        inp = (positive(cost.get('input_per_million'), model + ' input cost') / divisor * 2
-               ).quantize(RETAIL_PRICE_STEP, rounding=ROUND_CEILING)
-        out = (positive(cost.get('output_per_million'), model + ' output cost') / divisor * 2
-               ).quantize(RETAIL_PRICE_STEP, rounding=ROUND_CEILING)
+        # Preserve the exact 2 multiplier, including inexpensive models.
+        inp = (positive(cost.get('input_per_million'), model + ' input cost') / divisor * Decimal('2')
+               ).normalize()
+        out = (positive(cost.get('output_per_million'), model + ' output cost') / divisor * Decimal('2')
+               ).normalize()
         rates[model] = {'input_usd_per_million': str(inp), 'output_usd_per_million': str(out),
                         'billing_expr': f'v1:p * {inp} + c * {out}'}
     plans = []
@@ -62,7 +59,7 @@ def quote(config, required_models):
         plans.append({'title': plan['title'], 'price_amount': str(usd), 'currency': 'USD',
                       'manual_receipt_cny': str(sale), 'duration_unit': 'day', 'duration_value': days,
                       'total_amount': quota, 'quota_reset_period': 'never', 'enabled': False,
-                      'maximum_supplier_cost_cny_before_fees': str(sale / 2)})
+                      'maximum_supplier_cost_cny_before_fees': str(sale / Decimal('2'))})
     return {'mode': 'DRAFT', 'markup': 2, 'cny_per_usd': str(fx), 'models': rates, 'plans': plans,
             'limitation': 'Ordinary text only; cache/tool/media costs require separate validation. Fees and operating costs are not included.'}
 

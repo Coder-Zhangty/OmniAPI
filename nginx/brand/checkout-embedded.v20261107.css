@@ -1,0 +1,34 @@
+html.omni-checkout-embedded{height:auto;min-height:0;background:#fff;color-scheme:light}
+.omni-checkout-embedded body.modern-checkout{margin:0;min-height:0;height:auto;background:#fff;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:0.875rem;line-height:1.5}
+.omni-checkout-embedded .shell{width:100%;max-width:none;min-height:0;height:auto;margin:0;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);border:0;border-radius:0;box-shadow:none;background:none}
+.omni-checkout-embedded .summary-pane,.omni-checkout-embedded .pay-pane{min-height:0;padding:1.5rem;background:transparent;border:0;display:block}
+.omni-checkout-embedded .pay-pane{margin:1.5rem 0;border-left:1px solid #e5e5ea;padding-block:0}
+.omni-checkout-embedded .brand,.omni-checkout-embedded .back,.omni-checkout-embedded .summary-footer,.omni-checkout-embedded .summary-pane footer,.omni-checkout-embedded #order-title,.omni-checkout-embedded #summary-amount,.omni-checkout-embedded .summary-toggle{display:none!important}
+.omni-checkout-embedded .order{margin:0;max-width:none}.omni-checkout-embedded .amount-field{margin-top:0.625rem;height:2.75rem;border-radius:0.5rem}.omni-checkout-embedded .amount-field input{font-size:1.0625rem}.omni-checkout-embedded .field-heading{gap:0.5rem}.omni-checkout-embedded .field-label{font-size:0.8125rem;font-weight:500}.omni-checkout-embedded .amount-hint{font-size:0.6875rem}.omni-checkout-embedded .presets{gap:0.5rem;margin-top:0.75rem}.omni-checkout-embedded .presets button{height:2.25rem;min-width:0;border-radius:0.5rem;padding:4px;font-size:0.8125rem}.omni-checkout-embedded .presets button[aria-pressed=true]{color:#007aff;background:#edf5ff;border-color:#007aff}.omni-checkout-embedded .receipt{margin-top:1.25rem}.omni-checkout-embedded .receipt-row{padding:6px 0;font-size:0.8125rem}.omni-checkout-embedded .receipt-row.total{font-size:0.9375rem;padding-top:0.75rem;margin-top:6px}.omni-checkout-embedded .quote-details{margin-top:0.5rem}.omni-checkout-embedded .estimate{font-size:0.75rem;margin-top:0.5rem}.omni-checkout-embedded .pay-content{max-width:none;margin:0!important;padding:0}.omni-checkout-embedded #payment-title{font-size:1rem;letter-spacing:-.01em;margin:0 0 6px}.omni-checkout-embedded .subtitle{display:none}.omni-checkout-embedded .account{margin:0 0 0.875rem;font-size:0.75rem;overflow-wrap:anywhere}.omni-checkout-embedded .methods{display:flex;flex-direction:column;gap:0.5rem;margin:0 0 1rem}.omni-checkout-embedded .method{min-height:3.125rem;padding:0.625rem 0.75rem;border:1px solid #e5e5ea;border-radius:0.5rem;gap:0.625rem}.omni-checkout-embedded .method input{width:1rem;height:1rem}.omni-checkout-embedded .method-name{font-size:0.875rem;font-weight:500}.omni-checkout-embedded .method-detail{font-size:0.6875rem}.omni-checkout-embedded .payment-icon{width:1.5rem;height:1.5rem}.omni-checkout-embedded .method:has(input:checked){background:#f4f8ff;border-color:#007aff}.omni-checkout-embedded .pay-button{font-size:0.875rem;min-height:2.625rem;border-radius:0.5rem;margin:0}.omni-checkout-embedded .secure-line{font-size:0.6875rem;margin-top:0.75rem}.omni-checkout-embedded .fine-print{font-size:0.6875rem;margin-top:0.5rem}.omni-checkout-embedded .payment-footer{padding:0.75rem 0 0;margin:0;gap:0.875rem;flex-wrap:wrap;justify-content:flex-start;font-size:0.6875rem}.omni-checkout-embedded .payment-footer a{font-size:0.6875rem}.omni-checkout-embedded .notice{font-size:0.75rem;margin:0 0 0.875rem}.omni-checkout-embedded .summary-pane>.summary-content{height:auto;display:block}.omni-checkout-embedded body[data-page=checkout] .eyebrow{font-size:1rem;margin:0}.omni-checkout-embedded body[data-page=checkout] .reference-total{font-size:2.25rem;margin:0.75rem 0 1.25rem}.omni-checkout-embedded .qr-wrap{max-width:100%}.omni-checkout-embedded .summary-foot{font-size:0.6875rem}.omni-checkout-embedded .status-heading h1{font-size:1.25rem}
+html.omni-checkout-embedded.dark,html.omni-checkout-embedded.dark body.modern-checkout{background:#242426;color:#f5f5f7;color-scheme:dark;--ink:#f5f5f7;--muted:#aaaab2;--blue:#409cff;--accent:#409cff;--line:#3a3a3c;--border:#3a3a3c}
+.omni-checkout-embedded.dark .pay-pane,.omni-checkout-embedded.dark .method,.omni-checkout-embedded.dark .amount-field,.omni-checkout-embedded.dark .presets button{border-color:#3a3a3c}.omni-checkout-embedded.dark input,.omni-checkout-embedded.dark .amount-field{background:#2c2c2e;color:#f5f5f7}.omni-checkout-embedded.dark .method:has(input:checked),.omni-checkout-embedded.dark .presets button[aria-pressed=true]{background:#20334a;border-color:#409cff}.omni-checkout-embedded.dark .receipt-row,.omni-checkout-embedded.dark .receipt-row strong,.omni-checkout-embedded.dark #payment-title,.omni-checkout-embedded.dark .field-label{color:#f5f5f7}.omni-checkout-embedded.dark .notice{background:#20334a;color:#d0e5ff}
+@media(max-width:38.75rem){.omni-checkout-embedded .shell{grid-template-columns:minmax(0,1fr)}.omni-checkout-embedded .summary-pane{padding:1.125rem}.omni-checkout-embedded .pay-pane{margin:0 1.125rem 1.125rem;padding:1.125rem 0 0;border-left:0;border-top:1px solid #e5e5ea}.omni-checkout-embedded .presets{grid-template-columns:repeat(5,minmax(0,1fr))}.omni-checkout-embedded .receipt{margin-top:0.875rem}.omni-checkout-embedded .field-heading{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.omni-checkout-embedded *{animation:none!important;transition:none!important}}
+.omni-checkout-embedded :is(.presets button, .method, .pay-button):active:not(:disabled) {
+  transition-duration: 0s;
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+
+.omni-checkout-embedded :is(button, input, summary, a):focus-visible {
+  outline: 2px solid var(--blue, #007aff);
+  outline-offset: 3px;
+}
+
+.omni-checkout-embedded body[data-page=select] .payment-footer a[href='/wallet'] {
+  display: none;
+}
+
+.omni-checkout-embedded body[data-page=select] .payment-footer .separator {
+  display: none;
+}
+
+.omni-checkout-embedded .presets button {
+  min-block-size: 2.5rem;
+  block-size: auto;
+  overflow-wrap: anywhere;
+}

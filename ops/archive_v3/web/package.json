@@ -1,0 +1,1 @@
+{"name":"omniapi-archive-v3","private":true,"scripts":{"build":"node build.cjs"},"dependencies":{"react":"19.2.7","react-dom":"19.2.7","marked":"18.0.6","dompurify":"3.4.13"}}

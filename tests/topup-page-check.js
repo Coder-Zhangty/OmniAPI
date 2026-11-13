@@ -203,7 +203,7 @@ async function open(url, session, { submit = 'ok', quote = {} } = {}) {
     check('正常报价不显示备用汇率提示', d.getElementById('quote-warning').hidden, true);
     check('人民币扫码不需要交易参考号', d.getElementById('payment-reference').hidden, true);
     check('报价后可以提交', d.getElementById('submit-request').disabled, false);
-    check('展示收款码', d.getElementById('payment-qr').getAttribute('src'), '/brand/payment-qr.png');
+    check('展示收款码', d.getElementById('payment-qr').getAttribute('src'), '/brand/payment-qr.png?v=20261002-qr-fix');
     w.close();
   }
 

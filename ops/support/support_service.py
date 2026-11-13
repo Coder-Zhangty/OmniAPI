@@ -41,6 +41,7 @@ sys.path.insert(0, str(ROOT / 'ops' / 'support'))
 import notifier  # noqa: E402
 import operator_session  # noqa: E402
 import support_store as store  # noqa: E402
+import support_workspace  # noqa: E402
 import topup_requests as queue  # noqa: E402
 import user_identity  # noqa: E402
 from operator_session import AuthError  # noqa: E402
@@ -66,7 +67,8 @@ SEND_GLOBAL_LIMIT = (600, 60)
 START_IP_LIMIT = (60, 600)
 # 真正「开一个新会话」才花这张严格的按账号配额。
 START_UID_LIMIT = (6, 600)
-IDENTIFY_IP_LIMIT = (40, 600)    # 身份校验要打网关，单独限量
+IDENTIFY_UID_LIMIT = (500, 600)  # 同一真实账号跨设备共用滚动十分钟额度
+INVALID_IDENTIFY_IP_LIMIT = (40, 600)  # 无法识别账号的无效凭证单独计数
 CONVERSATIONS_PER_UID = 5        # 同时能开的会话数上限
 
 DEFAULT_CONFIG = {
@@ -125,10 +127,16 @@ class Service:
         self.allow_insecure_cookie = allow_insecure_cookie
         self.public_origin = (public_origin or os.environ.get('SUPPORT_PUBLIC_ORIGIN')
                               or 'https://omniapi.biz').rstrip('/')
+        self.allowed_origins = {self.public_origin}
+        if self.public_origin in ('https://omniapi.biz', 'https://omniapi.hyeroomy.com'):
+            self.allowed_origins.update(('https://omniapi.biz', 'https://omniapi.hyeroomy.com'))
         self.secrets_doc = operator_session.load_json(self.secrets_path)
 
         self.store = store.ConversationStore(self.events_folder)
-        self.identify_gate = queue.SlidingWindow(*IDENTIFY_IP_LIMIT)
+        self.workspace = support_workspace.SupportWorkspace(self)
+        self.identify_gate = queue.SlidingWindow(*IDENTIFY_UID_LIMIT)
+        self.invalid_identify_gate = queue.SlidingWindow(*INVALID_IDENTIFY_IP_LIMIT)
+        self.identify_lock = threading.Lock()
         self.send_uid_gate = queue.SlidingWindow(*SEND_UID_LIMIT)
         self.send_ip_gate = queue.SlidingWindow(*SEND_IP_LIMIT)
         self.send_global_gate = queue.SlidingWindow(*SEND_GLOBAL_LIMIT)
@@ -169,13 +177,8 @@ class Service:
                             store.MAX_TEXT),
             'ai_enabled': bool((config.get('ai') or {}).get('enabled')),
             'notify_channel': (config.get('notify') or {}).get('channel') or 'none',
-            'categories': [
-                {'id': 'recharge', 'label': '充值到账'},
-                {'id': 'api_access', 'label': 'API 接入'},
-                {'id': 'model_error', 'label': '模型调用错误'},
-                {'id': 'billing', 'label': '计费与扣额'},
-                {'id': 'account_security', 'label': '账号与安全'},
-                {'id': 'other', 'label': '其他'}],
+            'categories': [{'id': c['id'], 'label': c['name']} for c in
+                           self.workspace.catalog()['categories'] if c['enabled']],
         }
 
     def update_public_settings(self, values):
@@ -269,12 +272,16 @@ class Service:
 
     # -- identity --------------------------------------------------------
     def identify(self, token, client):
-        """Bearer token -> account, on its own budget so a public route cannot
-        become a stream of gateway lookups."""
-        if not self.identify_gate.allow(client):
-            raise PermissionError('身份校验过于频繁，请 %d 秒后再试。'
-                                  % self.identify_gate.retry_after(client))
-        return user_identity.user_for(self.gateway_url, token)
+        """Count requests by the gateway-verified UID, never a client field."""
+        user = user_identity.user_for(self.gateway_url, token)
+        gate = self.identify_gate if user else self.invalid_identify_gate
+        key = str(user['id']) if user else client
+        # ThreadingHTTPServer serves concurrent tabs/devices; count atomically.
+        with self.identify_lock:
+            if not gate.allow(key):
+                raise PermissionError('身份校验过于频繁，请 %d 秒后再试。'
+                                      % gate.retry_after(key))
+        return user
 
     def generation(self):
         return operator_session.load_generation(self.state_path)
@@ -441,7 +448,7 @@ class Handler(BaseHTTPRequestHandler):
         if scope is None:
             return None
         origin = (self.headers.get('Origin') or '').rstrip('/')
-        if origin != self.service.public_origin:
+        if origin not in self.service.allowed_origins:
             self.respond(403, {'success': False, 'message': '请求来源校验失败'})
             return None
         expected = operator_session.csrf_token(self.service.secrets_doc, self.admin_cookie())
@@ -521,6 +528,12 @@ class Handler(BaseHTTPRequestHandler):
                     'counts': self.service.store.counts()})
             if path == USER_PREFIX + 'config':
                 return self.respond(200, {'success': True, **self.service.public_config()})
+            if path == USER_PREFIX + 'v3/workspace':
+                user = self.require_user()
+                return self.respond(200, {'success': True, 'data': self.service.workspace.snapshot(user['id'])})
+            if path == ADMIN_PREFIX + 'v3/workspace':
+                if self.require_operator() is None: return
+                return self.respond(200, {'success': True, 'data': self.service.workspace.snapshot(days=params.get('days'))})
             if path == USER_PREFIX + 'v2/tickets':
                 user = self.require_user()
                 rows = [self.ticket_view(row) for row in self.service.store.search(limit=200)
@@ -619,7 +632,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if path.startswith(ADMIN_PREFIX):
                 origin = (self.headers.get('Origin') or '').rstrip('/')
-                if origin != self.service.public_origin:
+                if origin not in self.service.allowed_origins:
                     return self.respond(403, {'success': False,
                                               'message': '请求来源校验失败'})
             if path == USER_PREFIX + 'start':
@@ -661,6 +674,17 @@ class Handler(BaseHTTPRequestHandler):
                 return self.admin_v2_update(self.read_body())
             if path == ADMIN_PREFIX + 'v2/settings':
                 return self.admin_v2_settings(self.read_body())
+            if path == ADMIN_PREFIX + 'v3/catalog':
+                if self.require_operator_write() is None: return
+                result = self.service.workspace.save_catalog(self.read_body())
+                return self.respond(200, {'success': True, 'catalog': result})
+            if path == USER_PREFIX + 'v3/category':
+                user = self.require_user(); payload = self.read_body()
+                state = self.owned_ticket(user, payload.get('ticket_id'))
+                category = str(payload.get('category') or '')
+                if not self.service.workspace.allowed_category(category): raise ValueError('分类不可用')
+                self.service.store.update_ticket(state['id'], category=category)
+                return self.respond(200, {'success': True})
             if path == ADMIN_PREFIX + 'v2/upload':
                 return self.admin_v2_upload(self.read_body(MAX_UPLOAD_BODY))
             if path == ADMIN_PREFIX + 'v2/draft':
@@ -699,7 +723,7 @@ class Handler(BaseHTTPRequestHandler):
         category = str(payload.get('category') or '')
         subject = str(payload.get('subject') or '').strip()
         description = str(payload.get('description') or '').strip()
-        if category not in store.CATEGORIES:
+        if not self.service.workspace.allowed_category(category):
             raise ValueError('请选择问题分类')
         if not subject or len(subject) > 120:
             raise ValueError('工单标题为 1–120 字')
@@ -707,12 +731,13 @@ class Handler(BaseHTTPRequestHandler):
         if reason: raise ValueError(reason)
         if not self.service.start_uid_gate.allow(user['id']):
             raise PermissionError('创建工单过于频繁，请稍后再试')
-        active = [row for row in self.service.store.search(limit=200)
-                  if int(row.get('uid') or 0) == int(user['id'])
-                  and row.get('status') in store.ACTIVE_STATUSES]
+        active = [row for row in self.service.workspace.rows(user['id'])
+                  if row.get('status') in store.ACTIVE_STATUSES]
         if len(active) >= CONVERSATIONS_PER_UID:
             raise PermissionError('进行中的工单已达上限，请先解决旧工单')
         priority = self.service.ticket_priority(category, description)
+        if next(c for c in self.service.workspace.catalog()['categories'] if c['id'] == category)['priority'] == 'high':
+            priority = 'high'
         state = self.service.store.start(user['id'], user.get('username') or
             user.get('display_name') or '', str(payload.get('source') or 'drawer')[:40],
             subject, category, priority, reuse=False)
@@ -843,6 +868,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def admin_v2_update(self, payload):
         if self.require_operator_write() is None: return
+        if 'category' in payload and not self.service.workspace.allowed_category(str(payload['category']), active=False):
+            raise ValueError('分类不存在')
         updated = self.service.store.update_ticket(str(payload.get('ticket_id') or ''),
             **{key: payload[key] for key in ('subject','category','priority','assignee_id') if key in payload})
         return self.respond(200, {'success': True, 'ticket': self.ticket_view(updated)})

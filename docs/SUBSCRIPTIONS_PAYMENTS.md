@@ -151,7 +151,7 @@ Money: strconv.FormatFloat(plan.PriceAmount, 'f', 2, 64),   // 套餐，未换�
 
 ### 其余前置条件
 
-- **公网 HTTPS 域名**。当前 `ServerAddress = http://160.202.46.77` 是明文 IP，多数服务商只接受 HTTPS 域名回调。
+- **公网 HTTPS 域名**。当前 `ServerAddress = http://203.0.113.10` 是明文 IP，多数服务商只接受 HTTPS 域名回调。
 - 服务商提供的 网关地址 / 商户 ID(PID) / 密钥(KEY)。
 - `PayMethods` 里默认的 `custom1` 只是模板占位项，服务商不支持时点下去会下单失败，应替换成实际渠道。
 
@@ -212,7 +212,7 @@ Money: strconv.FormatFloat(plan.PriceAmount, 'f', 2, 64),   // 套餐，未换�
 | 端到端探针 | `probe_fx_quote_e2e`（报价→提交→待核验）、`probe_admin_selfheal_e2e`（管理端路由/会话自愈/CSRF 与 Origin 守卫）、`probe_credit_e2e`（经营者侧入账）、`probe_balance_e2e`（余额核对） | 按层拆开验证，各自用临时文件，不碰线上队列 |
 | 已退役 | `probe_e2e.py`、`probe_console_identity.py` | 都依赖密码登录网关（Turnstile 之后脚本做不到）和被删除的无报价提交路径，**跑起来只会误报失败**；文件保留为明确退役的存根并指向替代探针 |
 | 台账 | `runtime/topup-ledger.json` | 交易单号 → 用户、金额、额度、入账前后余额、是否核对通过 |
-| 入口 | 选项 `TopUpLink = /brand/topup.html` | 钱包页显示「前往扫码充值」入口 |
+| 入口 | 选项 `TopUpLink = /brand/topup.html` | 钱包页显示「前往充值」入口；2026-11-03 移除旧人工到账约5分钟提示 |
 
 ### 入账账号由服务端推导（2026-09-27 改造）
 

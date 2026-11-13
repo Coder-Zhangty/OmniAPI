@@ -19,10 +19,17 @@
     "note": "max_age_seconds 是「行情报价本身」的可用时限（覆盖周末与单日节假日）；fallback_max_age_seconds 是「经营者设定备用汇率」的可用时限，超过后人民币订单会明确拒绝报价而不是静默使用过期汇率。"
   },
   "payment_mode": "manual_verified_receipt",
-  "accepting_payments": true,
-  "contact": "3073283716@qq.com",
-  "qr_path": "/brand/payment-qr.png",
+  "accepting_payments": false,
+  "contact": "",
+  "qr_path": "",
   "min_amount_cny": 1,
-  "amounts_cny": [10, 20, 50, 100, 200, 500],
+  "amounts_cny": [
+    10,
+    20,
+    50,
+    100,
+    200,
+    500
+  ],
   "settlement_note": "到账核验由经营者本人完成；每笔付款只发放一次额度，请勿重复付款。"
 }

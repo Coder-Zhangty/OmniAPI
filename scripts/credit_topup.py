@@ -180,7 +180,7 @@ def add_balance(api, user_id, quota):
 
 
 def credit(config_path, ledger_path, user_id, amount_cny, transaction_id, apply_changes=False,
-           api=None, via='balance', allow_replay=False):
+           api=None, via='balance', allow_replay=False, paid_at=None):
     """Credit one receipt. Pass `api` to reuse a logged-in session.
 
     POST /api/user/login sits in New API's critical bucket (20 requests per 20
@@ -210,6 +210,13 @@ def credit(config_path, ledger_path, user_id, amount_cny, transaction_id, apply_
 
     if not apply_changes:
         return {'status': 'DRY_RUN', 'would_issue': record, 'ledger_written': False}
+    if config.get('commercial_v2') or config.get('unified_receipts'):
+        if via != 'balance':
+            raise ValueError('new membership receipts require direct wallet credit')
+        return credit_usd(ledger_path, user_id, record['usd'], transaction_id,
+                          apply_changes=True, api=api, commercial_v2=True,
+                          net_cny=amount_cny,
+                          metadata={'rate_cny_per_usd': record['rate_cny_per_usd']}, paid_at=paid_at)
     replay = reserve(ledger_path, ledger, record, allow_replay=allow_replay)
     if replay:
         return {'status': 'REPLAY', 'issued': replay, 'ledger_written': True,
@@ -243,7 +250,8 @@ def credit(config_path, ledger_path, user_id, amount_cny, transaction_id, apply_
 
 
 def credit_usd(ledger_path, user_id, amount_usd, transaction_id, apply_changes=False,
-               api=None, metadata=None, allow_replay=False):
+               api=None, metadata=None, allow_replay=False, commercial_v2=False,
+               net_cny=None, paid_at=None):
     """Credit an already reconciled USD net receipt exactly once.
 
     Payoneer and stablecoins settle in USD.  CNY quote orders are converted with
@@ -273,6 +281,40 @@ def credit_usd(ledger_path, user_id, amount_usd, transaction_id, apply_changes=F
                    'created_at': dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')})
     if not apply_changes:
         return {'status': 'DRY_RUN', 'would_issue': record, 'ledger_written': False}
+    if commercial_v2:
+        if net_cny is None or Decimal(str(net_cny)) <= 0:
+            raise ValueError('verified CNY equivalent is required for membership credit')
+        existing = find_record(ledger, transaction_id)
+        if existing and (int(existing.get('user_id') or 0) != int(user_id)
+                         or int(existing.get('quota') or 0) != quota):
+            raise ValueError('receipt conflicts with the local ledger')
+        if existing and int(existing.get('billing_version') or 0) != 2:
+            if existing.get('state') != 'applied' and not existing.get('applied'):
+                raise ValueError('旧流程凭据状态不明确，请先核对原本金入账记录，不能重复充值。')
+            # Register an already credited receipt without issuing principal.
+            api.ok('/api/omni/admin/import-receipt', {
+                'key': 'legacy:' + transaction_id, 'user_id': int(user_id),
+                'cents': int(Decimal(str(net_cny)).quantize(Decimal('0.01')) * 100),
+                'quota': quota,
+            })
+        result = api.ok('/api/omni/admin/credit', {
+            'key': transaction_id, 'user_id': int(user_id),
+            'cents': int(Decimal(str(net_cny)).quantize(Decimal('0.01')) * 100),
+            'quota': quota,
+            **({'paid_at': int(paid_at), 'paid_at_source': 'manual:verified_transaction'} if paid_at else {}),
+        })
+        if result.get('refunded'):
+            raise ValueError('该凭据已退款，不再重复入账；新收款须使用新交易凭据。')
+        record.update({'bonus_quota': int(result['bonus']), 'campaign_bonus': int(result.get('campaign_bonus') or 0), 'promotion_state': result.get('promotion_state',''), 'paid_at': int(result.get('paid_at') or 0), 'billing_version': 2,
+                       'net_cny': plain(net_cny), 'balance_verified': True})
+        if existing:
+            existing.update(record)
+            record = existing
+        else:
+            ledger.setdefault('records', []).append(record)
+        finish(ledger_path, ledger, record)
+        return {'status': 'PASS', 'issued': record, 'ledger_written': True,
+                'note': '充值本金及适用的活动赠额已由网关在同一事务入账。'}
     replay = reserve(ledger_path, ledger, record, allow_replay=allow_replay)
     if replay:
         return {'status': 'REPLAY', 'issued': replay, 'ledger_written': True,

@@ -1,6 +1,6 @@
 # OmniAPI 登录与第三方认证
 
-公开登录和注册页只接受邮箱格式，邮箱直接作为 New API 的唯一用户名保存。当前阶段不发送邮箱验证码；启用 SMTP 后再开启邮箱验证。
+公开登录和注册页只接受邮箱格式，邮箱直接作为 New API 的唯一用户名保存。2026-11-07 已接通 Resend，并开启新注册邮箱验证。注册页使用一个邮箱字段同时作为登录名和验证码收件地址；验证码 10 分钟内有效，重发冷却 60 秒。旧账号保留原登录方式，须补绑并验证邮箱后才具备邮箱密码找回资格。发信配置和实际验收范围见 [Resend 接入记录](RESEND_MAIL_SETUP_20261107.md)。
 
 Cloudflare Turnstile 使用 New API 原生服务端校验。Site Key 可以公开，Secret Key 只存放在服务器 `.secrets/turnstile.json`（0600）。密钥曾出现在截图中，因此上线验收后应在 Cloudflare 控制台轮换 Secret，再运行 `python3 scripts/configure_turnstile.py --file <root-only-file>`。
 

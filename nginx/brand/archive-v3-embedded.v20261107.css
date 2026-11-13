@@ -1,0 +1,19 @@
+/* The parent console provides the brand and page title. */
+.app {
+  --chrome-height: 3.375rem;
+}
+
+.topbar > .brand,
+.topbar > .workspace-name {
+  display: none;
+}
+
+.topbar .global-search {
+  margin-left: 0;
+}
+
+@media (max-width: 35em) {
+  .topbar .global-search {
+    width: 100%;
+  }
+}

@@ -1,0 +1,17 @@
+(()=>{'use strict';let busy=false,current=null;const host=document.getElementById('risk-v2-admin');if(!host)return;const labels={hold:'临停待复核',budget:'试用预算保护',guard:'消费限流待复核',restored:'已恢复',confirmed:'复核维持限制',shadow:'影子命中'};
+ const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
+ async function api(path,body){return(await OmniCommerce.request('/api/omni/admin/risk/v2'+path,body)).data}
+ function rowTable(heads,rows){const wrap=el('div'),t=el('table'),h=el('tr');wrap.className='table-wrap';for(const v of heads)h.append(el('th',v));t.append(h);for(const row of rows){const r=el('tr');for(const v of row){const c=el('td');c.append(v instanceof Node?v:document.createTextNode(v??'—'));r.append(c)}t.append(r)}wrap.append(t);return wrap}
+ function button(text,fn){const b=el('button',text);b.className='secondary';b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;try{await fn();await load()}catch(e){message(e.message)}finally{busy=false;b.disabled=false}};return b}
+ function message(text){const n=document.getElementById('risk-v2-message');if(n)n.textContent=text}
+ async function action(r,act){const note=prompt('请填写复核依据（至少3字）。恢复只撤销本次措施，旧会话保持失效。');if(!note||note.trim().length<3)return;await api('/actions',{user_id:r.user_id,version:r.version,action:act,note:note.trim()})}
+ async function load(){try{current=await api('');host.hidden=false;host.replaceChildren();host.append(el('h2','自动止损与复核'));const p=current.policy;host.append(el('p','策略版本 '+p.version+' · '+(p.shadow?'影子观察中':p.auto_hold?'自动处置已启用':'新自动处置已关闭')+' · 新号保护 '+(p.new_user_protection?'开启':'关闭')+' · 临时IP '+(p.temporary_ip?'开启':'关闭')));host.append(button('刷新',async()=>{}),button('停止新增自动措施',()=>api('/policy',{...p,auto_hold:false,new_user_protection:false,temporary_ip:false,shadow:true})));host.append(el('p','开关关闭后，已有限制、复核、通知和费用核对仍继续。自动策略由受控发布流程开启。'));
+ const msg=el('p');msg.id='risk-v2-message';msg.setAttribute('role','status');host.append(msg);
+ host.append(rowTable(['账号／案件','当前措施','原因','复核操作'],(current.controls||[]).map(r=>{const box=el('div');box.append(button('误报并恢复',()=>action(r,'restore')),button('确认并限制',()=>action(r,'confirm')),button('继续保护观察',()=>action(r,'observe')));return['#'+r.user_id+' · '+r.case_id,labels[r.state]||r.state,r.reason,box]})));
+ host.append(el('h3','本人复核说明'),rowTable(['账号／案件','时间','说明'],(current.appeals||[]).map(a=>['#'+a.user_id+' · '+a.case_id,new Date(a.created_at*1000).toLocaleString('zh-CN'),a.body+' · '+(a.reviewed_at?'已处理：'+a.decision:'待复核')])));
+ host.append(el('h3','通知展示回执'),rowTable(['案件','通知','状态'],(current.notices||[]).map(n=>['#'+n.user_id+' · '+n.case_id,n.title,n.acknowledged_at?'已确认':n.displayed_at?'已展示':'已保存，尚未展示'])));
+ host.append(el('h3','采购风险估算与未决预留'),rowTable(['状态','尝试数','预留／估算结算'],(current.exposure||[]).map(x=>[x.State,x.N,'¥'+(x.Reserved/1e6).toFixed(4)+' / ¥'+(x.Actual/1e6).toFixed(4)])));
+ host.append(el('h3','精确IP措施'),rowTable(['来源摘要','类型','到期',''],(current.ips||[]).filter(x=>!x.revoked_at).map(x=>[x.tag.slice(0,12),x.source,x.expires_at?new Date(x.expires_at*1000).toLocaleString('zh-CN'):'人工永久',button('解除该措施',async()=>{const note=prompt('解除依据（至少3字）');if(note?.length>=3)await api('/ips',{tag:x.tag,version:x.version,revoke:true,note})})])));
+ }catch(e){host.replaceChildren();host.hidden=true}}
+ load();setInterval(()=>{if(!document.hidden&&!busy)load()},30000);
+})();

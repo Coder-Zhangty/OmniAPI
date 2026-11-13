@@ -159,9 +159,15 @@ class ServiceTests(unittest.TestCase):
         self.secrets = root / 'secrets.json'
         self.config = root / 'topup.json'
         self.config.write_text(json.dumps(CONFIG), encoding='utf-8')
+        # Unit fixtures must not inherit production's disabled Payoneer switch.
+        methods = json.loads((BASE / 'config/payment-methods.json').read_text(encoding='utf-8'))
+        for method in methods.get('methods', []):
+            if method.get('kind') == 'payoneer': method['enabled'] = True
+        self.methods = root / 'payment-methods.json'
+        self.methods.write_text(json.dumps(methods), encoding='utf-8')
         topup_watch.init_secrets(self.secrets)
         self.service = topup_watch.Service(self.secrets, self.events, self.ledger, self.config,
-                                           gateway_url='http://127.0.0.1:1')
+                                           gateway_url='http://127.0.0.1:1', methods_config_path=self.methods)
         self.service.username = lambda user_id: 'tester'
 
     def tearDown(self):

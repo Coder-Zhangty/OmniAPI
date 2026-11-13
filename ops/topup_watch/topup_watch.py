@@ -101,6 +101,7 @@ FALLBACK_REASONS = {
 # Rails that must always exist on the admin page. Operator values override the
 # skeleton; the skeleton itself only carries identity and safe defaults.
 BUILTIN_METHODS = (
+    {'id': 'wechat-qr', 'kind': 'cny_qr', 'title': '微信临时收款', 'currency': 'CNY', 'minimum': '1', 'enabled': False, 'sort': 15, 'qr_path': '', 'instructions': ''},
     {'id': 'payoneer', 'kind': 'payoneer', 'title': 'Payoneer', 'currency': 'USD',
      'minimum': '20', 'enabled': False, 'sort': 20, 'link': '', 'qr_path': '',
      'instructions': '仅收 USD，付款后填写 Payoneer 交易参考号。'},
@@ -300,10 +301,10 @@ class Service:
         """
         config = self.config()
         methods = [{
-            'id': 'cny-qr', 'kind': 'cny_qr', 'title': '微信 / 支付宝扫码',
+            'id': 'cny-qr', 'kind': 'cny_qr', 'title': config.get('cny_qr_title') or '微信 / 支付宝扫码',
             'currency': 'CNY', 'minimum': str(config.get('min_amount_cny') or 1),
             'enabled': True, 'sort': 10, 'qr_path': config.get('qr_path') or '',
-            'instructions': '请支付准确金额，到账后提交申请。',
+            'instructions': config.get('cny_qr_instructions') or '请支付准确金额，到账后提交申请。',
         }]
         configured = {row['id']: row for row in self.methods_config()}
         for skeleton in BUILTIN_METHODS:
@@ -540,6 +541,8 @@ class Service:
         if amount < minimum:
             raise ValueError('低于该支付方式最低金额 ' + queue.plain(minimum) + ' ' + method['currency'])
         currency = method['currency']
+        if currency == 'CNY' and amount > Decimal('10000'):
+            raise ValueError('人民币单笔充值最高 ¥10000')
         note = None
         if currency == 'USD':
             usd, rate, source, as_of = amount, Decimal('1'), 'USD settlement', iso()
@@ -755,7 +758,8 @@ class Service:
                 'gateway_session': self.has_api()}
 
     def fulfill(self, request_id, transaction=None, note=None, operator='admin-page',
-                net_received=None):
+                net_received=None, paid_at=None):
+        paid_at = verified_payment_time(paid_at)
         with self.lock:
             record = queue.find(self.events_path, request_id)
             if record is None:
@@ -767,14 +771,15 @@ class Service:
             transaction_id = 'topup:' + record['id']
             payment_reference = ((str(transaction).strip() if transaction else '') or
                                  record.get('reference') or '')
-            result, net, credited = self._credit_with_session(record, transaction_id, net_received)
+            result, net, credited = self._credit_with_session(record, transaction_id, net_received, paid_at)
             event = queue.close_request(record['id'], 'fulfilled', self.events_path,
                                         code=result.get('code'), transaction=payment_reference,
-                                        operator=operator, note=note, net_received=net,
+                                        operator=operator, note=note, net_received=net, paid_at=paid_at,
+                                        quota=(result.get('issued') or {}).get('quota'), bonus=(result.get('issued') or {}).get('bonus_quota'), promotion_state=(result.get('issued') or {}).get('promotion_state'),
                                         credited_usd=credited, reference=record.get('reference'))
         return {'request': record, 'issued': result, 'event': event}
 
-    def _credit_with_session(self, record, transaction_id, net_received=None):
+    def _credit_with_session(self, record, transaction_id, net_received=None, paid_at=None):
         """Credit the wallet, rebuilding the session once if it expired."""
         last_error = None
         for attempt in (1, 2):
@@ -793,15 +798,32 @@ class Service:
                                  'fx_rate', 'fx_source', 'fx_as_of', 'fx_note',
                                  'reference', 'asset', 'network')
                                 if record.get(key) is not None}
+                    v2 = bool(self.config().get('commercial_v2') or self.config().get('unified_receipts'))
+                    net_cny = net if record['currency'] == 'CNY' else None
+                    if v2 and net_cny is None:
+                        cny_rate, source, as_of, note = self.cny_rate()
+                        net_cny = net * Decimal(str(cny_rate))
+                        metadata.update({'membership_fx_rate': str(cny_rate),
+                                         'membership_fx_source': source,
+                                         'membership_fx_as_of': as_of})
                     result = credit_topup.credit_usd(self.ledger_path, record['uid'], credited,
                                                      transaction_id, apply_changes=True,
                                                      api=api, metadata=metadata,
-                                                     allow_replay=True)
+                                                     allow_replay=True, commercial_v2=v2,
+                                                     net_cny=net_cny, paid_at=paid_at)
+                    return result, net, credited
+                if self.config().get('commercial_v2') or self.config().get('unified_receipts'):
+                    net = Decimal(str(record['cny']))
+                    credited = queue.usd_from_cny(net, self.config()['cny_per_usd'])
+                    result = credit_topup.credit_usd(self.ledger_path, record['uid'], credited,
+                                                     transaction_id, apply_changes=True,
+                                                     api=api, allow_replay=True,
+                                                     commercial_v2=True, net_cny=net, paid_at=paid_at)
                     return result, net, credited
                 result = credit_topup.credit(self.config_path, self.ledger_path,
                                              record['uid'], record['cny'], transaction_id,
                                              apply_changes=True, api=api, via='balance',
-                                             allow_replay=True)
+                                             allow_replay=True, paid_at=paid_at)
                 issued = result.get('issued') or {}
                 return result, Decimal(str(record['cny'])), Decimal(str(issued.get('usd') or record['usd']))
             except SessionMissing:
@@ -818,6 +840,25 @@ class Service:
                 if attempt == 2:
                     break
         raise ValueError('入账失败，未能确认额度已加到用户钱包：' + str(last_error))
+
+
+def verified_payment_time(value):
+    if value in (None, ''):
+        return None
+    import datetime as _dt
+    try:
+        if isinstance(value, int):
+            stamp = value
+        else:
+            parsed = _dt.datetime.fromisoformat(str(value))
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=_dt.timezone(_dt.timedelta(hours=8)))
+            stamp = int(parsed.timestamp())
+        if stamp <= 0 or stamp > int(_dt.datetime.now(_dt.timezone.utc).timestamp()) + 300:
+            raise ValueError()
+        return stamp
+    except (TypeError, ValueError, OverflowError):
+        raise ValueError('请输入收款交易上核实的实际付款时间（北京时间），无法确认时留空，赠额待核验。')
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -981,9 +1022,24 @@ class Handler(BaseHTTPRequestHandler):
             if path == FX_PATH:
                 snapshot = self.service.fx_snapshot()
                 return self.respond(200, {'success': True, **snapshot})
+            if path == '/brand/api/subscription/fx':
+                rate, source, as_of, note = self.service.cny_rate()
+                return self.respond(200, {'success': True, 'rate': str(rate),
+                                          'source': source, 'as_of': as_of, 'note': note})
             if path == METHODS_PATH:
                 return self.respond(200, {'success': True,
                                           'methods': self.service.payment_methods(public=True)})
+            if path == '/brand/api/topup/history':
+                user = self.service.identify(self.bearer_token(), self.client_ip())
+                if not user:
+                    raise AuthError('需要登录')
+                fields = ('id', 'status', 'amount', 'currency', 'quoted_amount',
+                          'created_at', 'at', 'handled_at', 'credited_usd', 'quota', 'bonus', 'promotion_state', 'paid_at')
+                rows = [row for row in queue.requests(self.service.events_path)
+                        if int(row.get('uid') or 0) == int(user['id'])]
+                return self.respond(200, {'success': True, 'requests': [
+                    {key: row[key] for key in fields if key in row}
+                    for row in rows[-100:][::-1]]})
             if path == NOTICES_PATH:
                 user = self.service.identify(self.bearer_token(), self.client_ip())
                 if not user:
@@ -1122,7 +1178,7 @@ class Handler(BaseHTTPRequestHandler):
         payload = self.read_body()
         result = self.service.fulfill(payload.get('id'), payload.get('transaction'),
                                       payload.get('note'), operator=scope,
-                                      net_received=payload.get('net_received'))
+                                      net_received=payload.get('net_received'), paid_at=payload.get('paid_at'))
         issued = result['issued'].get('issued') or {}
         verified = bool(issued.get('balance_verified'))
         if issued.get('code'):
@@ -1133,7 +1189,7 @@ class Handler(BaseHTTPRequestHandler):
         else:
             message = result['issued'].get('note') or '接口返回成功，但余额未能立即核对，请到后台确认。'
         self.respond(200, {'success': True, 'request_id': result['request']['id'],
-                           'code': issued.get('code'), 'quota': issued.get('quota'),
+                           'code': issued.get('code'), 'quota': issued.get('quota'), 'bonus': issued.get('bonus_quota',0), 'promotion_state': issued.get('promotion_state',''),
                            'quota_before': issued.get('quota_before'),
                            'quota_after': issued.get('quota_after'),
                            'balance_verified': verified,
@@ -1337,3 +1393,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

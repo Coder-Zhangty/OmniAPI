@@ -142,7 +142,7 @@ def fold(events):
             record['code'] = event.get('code')
             record['handled_by'] = event.get('by')
             record['note'] = event.get('note')
-            for key in ('net_received', 'credited_usd', 'reference'):
+            for key in ('net_received', 'credited_usd', 'reference', 'paid_at', 'quota', 'bonus', 'promotion_state'):
                 if key in event:
                     record[key] = event.get(key)
     return [{k: v for k, v in records[request_id].items() if k != 'type'} for request_id in order]
@@ -288,7 +288,7 @@ def build_quoted_request(user_id, quote, reference='', source='web', client='', 
 
 def close_request(request_id, status, path=DEFAULT_EVENTS, code=None, transaction=None,
                   operator='admin', note=None, now=None, net_received=None,
-                  credited_usd=None, reference=None):
+                  credited_usd=None, reference=None, paid_at=None, quota=None, bonus=None, promotion_state=None):
     """Record a terminal event. Refuses a request that is missing or already closed."""
     if status not in CLOSED_STATES:
         raise ValueError('status must be one of ' + ', '.join(CLOSED_STATES))
@@ -310,6 +310,10 @@ def close_request(request_id, status, path=DEFAULT_EVENTS, code=None, transactio
         event['net_received'] = plain(net_received)
     if credited_usd is not None:
         event['credited_usd'] = plain(credited_usd)
+    for key, value in [('quota',quota),('bonus',bonus),('promotion_state',promotion_state)]:
+        if value is not None: event[key]=value
+    if paid_at:
+        event['paid_at'] = int(paid_at)
     if reference:
         event['reference'] = str(reference)
     return append_event(event, path)

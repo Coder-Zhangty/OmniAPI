@@ -1,3 +1,127 @@
+/* OmniAPI risk notice and scoped Turnstile metadata; credentials stay opaque. */
+(()=>{'use strict';
+ function wrap(ts){if(!ts||ts.__omniRiskAction)return;try{let render=ts.render;Object.defineProperty(ts,'render',{configurable:true,get(){return typeof render==='function'?function(target,options,...args){return render.call(ts,target,{...options,action:'omni_auth'},...args)}:render},set(fn){render=fn}});Object.defineProperty(ts,'__omniRiskAction',{value:true})}catch{}}
+ // The early loader hook attaches action metadata after vendor initialization.
+ // Predeclaring the global breaks Cloudflare's property-existence load guard.
+ wrap(window.turnstile);
+ if(!window.__omniRiskScriptLoading){window.__omniRiskScriptLoading=true;const s=document.createElement('script');s.src='/brand/risk-session.v20261028.js';s.defer=true;document.head.append(s)}
+})();
+/* Display-only Google/GitHub branding. OAuth identifiers and requests stay intact. */
+(() => {
+  'use strict';
+  if (window.__omniProviderIdentityInstalled) return;
+  window.__omniProviderIdentityInstalled = true;
+  const assets = {
+    google: '/brand/google-signin.v20261014-1.png',
+    github: '/brand/github-invertocat-black.v20261014-1.svg',
+  };
+  let profile = null;
+  let queued = false;
+  const frame = window.requestAnimationFrame?.bind(window) || (callback => window.setTimeout(callback, 0));
+  const style = document.createElement('style');
+  style.textContent = '.omni-provider-logo{display:inline-block!important;width:20px!important;height:20px!important;min-width:20px!important;object-fit:contain!important;flex-shrink:0!important;vertical-align:middle!important}.omni-provider-logo~svg{display:none!important}.omni-provider-google-slot{background:#fff!important;border-radius:6px}.dark .omni-provider-github{filter:invert(1)}.omni-provider-account{overflow-wrap:anywhere;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}';
+  document.head.append(style);
+  function queue() {
+    if (queued) return;
+    queued = true;
+    frame(() => { queued = false; decorate(); });
+  }
+  function logo(parent, provider) {
+    if (!parent) return;
+    const existing = parent.querySelector(':scope > .omni-provider-logo');
+    if (existing?.dataset.provider === provider) return;
+    // Only replace the icon slot, retaining the original OAuth button/handler.
+    // React retains ownership of its SVG nodes. Hide those via sibling CSS,
+    // rather than deleting them and breaking later reconciliation.
+    for (const child of parent.querySelectorAll(':scope > .omni-provider-logo')) child.remove();
+    const img = document.createElement('img');
+    img.className = 'omni-provider-logo omni-provider-' + provider;
+    img.dataset.provider = provider;
+    img.src = assets[provider];
+    img.alt = '';
+    img.setAttribute('aria-hidden', 'true');
+    parent.prepend(img);
+    if (provider === 'google' && !parent.matches('button')) parent.classList.add('omni-provider-google-slot');
+  }
+  function decorate() {
+    if (/^\/(login|register|sign-in|sign-up)\/?$/.test(location.pathname)) {
+      for (const button of document.querySelectorAll('button[type="button"]')) {
+        const text = button.textContent.trim();
+        if (!/继续|登录|Continue|Redirecting|Sign in|Log in/i.test(text)) continue;
+        if (/\bGoogle\b/i.test(text)) logo(button, 'google');
+        else if (/\bGitHub\b/i.test(text)) logo(button, 'github');
+      }
+    }
+    for (const label of document.querySelectorAll('li p[title]')) {
+      const name = label.getAttribute('title');
+      const provider = name === 'OIDC' || name === 'Google' ? 'google' : name === 'GitHub' ? 'github' : '';
+      if (!provider) continue;
+      const cell = label.closest('li');
+      const info = label.parentElement.parentElement;
+      const icon = cell.firstElementChild?.firstElementChild;
+      if (!info || !icon || !icon.querySelector('svg,.omni-provider-logo')) continue;
+      logo(icon, provider);
+      if (provider === 'google' && name !== 'Google') {
+        label.textContent = 'Google';
+        label.title = 'Google';
+      }
+      const value = info.querySelector(':scope > p');
+      if (!value || !profile) continue;
+      const field = provider === 'google' ? 'oidc' : 'github';
+      const id = profile[field + '_id'];
+      const account = profile[field + '_account'];
+      if (!id || !account) continue;
+      // Never project one user's cached email onto a different binding or an unbound row.
+      const matches = value.textContent.trim() === id || value.dataset.providerBoundId === id;
+      if (!matches) continue;
+      if (value.textContent !== account) value.textContent = account;
+      value.title = account;
+      value.dataset.providerBoundId = id;
+      value.classList.add('omni-provider-account');
+    }
+  }
+  function capture(payload) {
+    if (!payload?.success) return;
+    const user = payload.data?.user || payload.data;
+    if (!user || !Number.isInteger(user.id)) return;
+    const next = { id: user.id };
+    for (const key of ['oidc_id', 'github_id', 'oidc_account', 'github_account']) {
+      next[key] = typeof user[key] === 'string' ? user[key] : '';
+    }
+    profile = next; // Deliberately excludes access tokens, cookies and unrelated profile data.
+    queue();
+  }
+  function path(url) {
+    try { return new URL(url, location.origin).pathname; } catch (_) { return ''; }
+  }
+  const isProfile = url => /^\/api\/user\/(self|login|auth\/(login|refresh))$/.test(path(url));
+  const isLogout = url => /^\/api\/user\/(logout|auth\/logout)$/.test(path(url));
+  const open = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function (method, url, ...rest) {
+    if (isProfile(url)) this.addEventListener('load', () => {
+      try { capture(this.responseType === 'json' ? this.response : JSON.parse(this.responseText)); } catch (_) {}
+    }, { once: true });
+    if (isLogout(url)) this.addEventListener('load', () => { profile = null; }, { once: true });
+    return open.call(this, method, url, ...rest);
+  };
+  const fetch = window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    const url = typeof input === 'string' || input instanceof URL ? String(input) : input.url;
+    return fetch(input, init).then(response => {
+      if (isProfile(url) && typeof response.clone === 'function') response.clone().json().then(capture).catch(() => {});
+      if (isLogout(url) && response.ok) profile = null;
+      return response;
+    });
+  };
+  new MutationObserver(queue).observe(document.documentElement, { subtree: true, childList: true });
+  for (const method of ['pushState', 'replaceState']) {
+    const original = history[method];
+    history[method] = function (...args) { const result = original.apply(this, args); queue(); return result; };
+  }
+  addEventListener('popstate', queue);
+  queue();
+})();
+
 (()=>{'use strict';
 const isAuth=()=>/^\/(login|register|sign-in|sign-up)\/?$/.test(location.pathname);
 // 让其它注入脚本共用同一个「这是登录/注册页吗」的判断，别各自再写一份会走样的路径列表。
@@ -35,8 +159,8 @@ function refresh(){
   }
  }
  document.querySelectorAll('label,span,p').forEach(el=>{if(el.children.length===0&&/用户名/.test(el.textContent))el.textContent=el.textContent.replace('用户名或电子邮件','邮箱').replace('用户名','邮箱')});
- if(lastCard&&!lastCard.querySelector('.omni-auth-note')){const note=document.createElement('p');note.className='omni-auth-note';note.textContent='仅支持邮箱和密码登录 · 人机验证令牌单次有效';lastCard.append(note)}
- if(lastCard&&!lastCard.querySelector('.omni-oauth')){const box=document.createElement('div');box.className='omni-oauth';box.innerHTML='<div class="omni-oauth-title">快捷登录即将开放</div><div class="omni-oauth-grid"><button disabled>Google</button><button disabled>GitHub</button><button disabled>Apple</button></div>';lastCard.append(box)}
+ if(lastCard&&!lastCard.querySelector('.omni-auth-note')){const note=document.createElement('p');note.className='omni-auth-note';note.textContent='可使用邮箱密码或已启用的快捷登录方式';lastCard.append(note)}
+ // 快捷登录由原生 OAuthProviders 按后台开关渲染，沿用身份状态和账号绑定校验。
 }
 function validate(e){if(!isAuth())return;const email=emailInput();if(!email)return;const ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim());email.setCustomValidity(ok?'':'请输入有效的邮箱地址');if(!ok){e.preventDefault();e.stopImmediatePropagation();email.reportValidity()}}
 document.addEventListener('submit',validate,true);document.addEventListener('click',e=>{if(e.target.closest('button[type="submit"]'))validate(e)},true);

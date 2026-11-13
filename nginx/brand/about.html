@@ -2,7 +2,7 @@
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>关于 OmniAPI · 一个接口调用多家大模型</title>
 <meta name="description" content="OmniAPI 把 Claude、GPT、Gemini、Grok、DeepSeek、GLM 等 29 个模型聚合成一个 OpenAI 兼容接口。1 元起充，额度不每日重置、不自动续费，充值经人工核验到账。">
-<link rel="icon" href="/brand/omniapi.svg"><link rel="stylesheet" href="/brand/plans.css"></head>
+<link rel="icon" href="/brand/omniapi.svg"><link rel="stylesheet" href="/brand/plans.css"><link rel="stylesheet" href="/brand/announcement-read.css"></head>
 <body><header><a class="brand" href="/"><img src="/brand/omniapi.svg" width="34" height="34" alt="">OmniAPI</a><nav><a href="/brand/plans.html">套餐</a><a href="/brand/topup.html">账户充值</a><a href="/pricing">模型价格</a><a href="/console">控制台 ↗</a></nav></header>
 <main><div class="intro"><p class="eyebrow">OMNIAPI / ABOUT</p><h1>一个接口，多家大模型。</h1><p>一个 Key、一个兼容 OpenAI 的地址，即可调用 Claude、GPT、Gemini、Grok、DeepSeek、GLM 等 <strong>29 个模型</strong>。按 token 公开计价，1 元起充。</p></div>
 
@@ -29,7 +29,9 @@
 
 <div class="panel"><h2>接入信息</h2>
 <table class="requests"><tbody>
-<tr><th>Base URL</th><td class="mono">https://omniapi.biz/v1</td></tr>
+<tr><th>主线路 Base URL</th><td class="mono">https://omniapi.biz/v1</td></tr>
+<tr><th>备用线路 Base URL</th><td class="mono">https://omniapi.hyeroomy.com/v1</td></tr>
+<tr><th>切换说明</th><td>主线路访问异常时，可切换备用地址。</td></tr>
 <tr><th>鉴权</th><td class="mono">Authorization: Bearer &lt;你的令牌&gt;</td></tr>
 <tr><th>兼容协议</th><td>OpenAI 兼容；Claude 原生 <span class="mono">/v1/messages</span>；<span class="mono">/v1/responses</span></td></tr>
 <tr><th>可用端点</th><td class="mono">/v1/chat/completions、/v1/messages、/v1/responses、/v1/models</td></tr>
@@ -54,7 +56,7 @@
 <p class="small">这是一个聚合中转服务：模型本身的能力取决于上游，我们负责接入、计费与稳定性。把话说清楚，比说好听更有用。</p></div>
 
 <div class="panel"><h2>联系与反馈</h2>
-<p>充值、额度、退款或接入问题，请发邮件至 <strong id="contact">3073283716@qq.com</strong>。付款争议或重复付款请附上充值申请编号与付款时间，我们会核对处理。</p>
+<p>充值、额度、退款或接入问题，请发邮件至 <strong id="contact">support@example.com</strong>。付款争议或重复付款请附上充值申请编号与付款时间，我们会核对处理。</p>
 <p class="small">全站 HTTPS；数据库与配置每日自动备份；同一笔付款只会入账一次。</p></div>
 </main>
-<footer><a href="/">OmniAPI</a><span>按需使用，清楚计费。</span><a href="/brand/plans.html">查看套餐</a></footer></body></html>
+<footer><a href="/">OmniAPI</a><span>按需使用，清楚计费。</span><a href="/brand/privacy.html">数据留存说明</a><a href="/brand/plans.html">查看套餐</a></footer><script src="/brand/commerce-session.js" defer></script><script src="/brand/commerce-announcements.js" defer></script></body></html>

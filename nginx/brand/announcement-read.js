@@ -1,5 +1,20 @@
+/* OmniAPI risk notice and scoped Turnstile metadata; credentials stay opaque. */
+(()=>{'use strict';
+ function wrap(ts){if(!ts||ts.__omniRiskAction)return;try{let render=ts.render;Object.defineProperty(ts,'render',{configurable:true,get(){return typeof render==='function'?function(target,options,...args){return render.call(ts,target,{...options,action:'omni_auth'},...args)}:render},set(fn){render=fn}});Object.defineProperty(ts,'__omniRiskAction',{value:true})}catch{}}
+ // Use the early loader hook; never predeclare the vendor's global.
+ wrap(window.turnstile);
+ if(!window.__omniRiskScriptLoading){window.__omniRiskScriptLoading=true;const s=document.createElement('script');s.src='/brand/risk-session.v20261028.js';s.defer=true;document.head.append(s)}
+})();
 (() => {
   'use strict';
+
+  // One dialog owner per console window. Embedded wallet/plan frames share the
+  // parent's announcement; loading this helper twice must never double-pop.
+  if (window.__omniAnnouncementReadLoaded) return;
+  window.__omniAnnouncementReadLoaded = true;
+  try { if (window.parent !== window && window.parent.location.origin === location.origin) return; } catch (_) {}
+  // Keep payment and manual verification free of unrelated announcement dialogs.
+  const checkoutPage = !!document.querySelector('meta[name="omni-checkout"]');
 
   const STORAGE_KEY = 'notification-storage';
   const OWN_READ_PREFIX = 'omniapi.notice.read.';
@@ -11,6 +26,10 @@
   let entryCheckRunning = false;
   const dialogQueue = [];
   let dialogOpen = false;
+  let activeDialogKey = '';
+  let serverOffset=0,lastFetch=0,activeDialogExpires=0,activeDialogClose=null;
+  const now=()=>Date.now()/1000+serverOffset;
+  const isActive=item=>(!item.starts_at||now()>=Number(item.starts_at))&&(!item.ends_at||now()<Number(item.ends_at));
 
   function readState() {
     try {
@@ -47,7 +66,7 @@
   }
 
   function enqueueDialog(item) {
-    if (!item || !item.key || dialogQueue.some((queued) => queued.key === item.key)) return;
+    if (!item || !item.key || activeDialogKey === item.key || dialogQueue.some((queued) => queued.key === item.key)) return;
     dialogQueue.push(item);
     showNextDialog();
   }
@@ -56,6 +75,9 @@
     if (dialogOpen || !dialogQueue.length) return;
     dialogOpen = true;
     const item = dialogQueue.shift();
+    if(item.ends_at&&now()>=Number(item.ends_at)){dialogOpen=false;showNextDialog();return;}
+    activeDialogExpires=Number(item.ends_at)||0;
+    activeDialogKey = item.key;
     const overlay = document.createElement('div');
     overlay.className = 'omni-notice-overlay';
     overlay.setAttribute('role', 'presentation');
@@ -74,26 +96,38 @@
     body.textContent = item.body || '';
     const footer = document.createElement('div');
     footer.className = 'omni-notice-actions';
-    if (item.href) {
+    const actions = Array.isArray(item.actions) && item.actions.length ? item.actions : item.href ? [{href:item.href,action:item.action}] : [];
+    actions.slice(0,2).forEach(action => {
+      if (typeof action.href !== 'string' || !action.href.startsWith('/') || action.href.startsWith('//')) return;
       const link = document.createElement('a');
-      link.href = item.href;
-      link.textContent = item.action || '查看详情';
+      link.href = action.href;
+      link.textContent = normalizeText(action.action) || '查看详情';
       footer.append(link);
-    }
+    });
     const acknowledge = document.createElement('button');
     acknowledge.type = 'button';
     acknowledge.textContent = '我知道了';
     footer.append(acknowledge);
     dialog.append(kicker, title, body, footer);
+    if (typeof item.image === 'string' && /^\/brand\/[a-zA-Z0-9_-]+\.(?:png|jpe?g|webp)$/.test(item.image)) {
+      const image = document.createElement('img');
+      image.className = 'omni-notice-qr';
+      image.src = item.image;
+      image.alt = item.imageAlt || '公告二维码';
+      image.decoding = 'async';
+      dialog.insertBefore(image, footer);
+    }
     overlay.append(dialog);
     document.body.append(overlay);
-    const close = () => {
-      try { item.onAcknowledge && item.onAcknowledge(); } catch (_) {}
+    const close = (acknowledged=true) => {
+      try { if(acknowledged)item.onAcknowledge && item.onAcknowledge(); } catch (_) {}
       overlay.remove();
       dialogOpen = false;
+      activeDialogKey = '';activeDialogClose=null;activeDialogExpires=0;
       showNextDialog();
     };
-    acknowledge.addEventListener('click', close, { once: true });
+    activeDialogClose=close;
+    acknowledge.addEventListener('click', ()=>close(true), { once: true });
     acknowledge.focus();
   }
 
@@ -144,15 +178,21 @@
     });
   }
 
-  function queueUnreadAnnouncements() {
+  function queueUnreadAnnouncements(publicOnly = false) {
     (announcements || []).forEach((item) => {
+      if (!isActive(item)||(checkoutPage&&item.campaign_id!=='double11-2026')||(publicOnly && item.audience !== 'all')) return;
       const key = item.id !== undefined && item.id !== null ? `id:${item.id}` : '';
       if (!key || isRead(key)) return;
       enqueueDialog({
-        key: `announcement:${key}`,
+        key: `announcement:${key}`, ends_at:item.ends_at,
         kicker: '平台公告',
         title: normalizeText(item.title) || '平台通知',
-        body: normalizeText(item.content || item.description || item.title),
+        body: String(item.content || item.description || item.title || '').replace(/<[^>]*>/g, ' ').replace(/\r/g,'').trim(),
+        actions: Array.isArray(item.actions) ? item.actions : [],
+        href: typeof item.href === "string" && item.href.startsWith("/") && !item.href.startsWith("//") ? item.href : "",
+        action: normalizeText(item.action) || "查看详情",
+        image: item.image,
+        imageAlt: normalizeText(item.image_alt),
         onAcknowledge: () => { markRead(key); render(); },
       });
     });
@@ -180,7 +220,7 @@
   }
 
   async function runEntryChecks() {
-    if (entryCheckStarted || entryCheckRunning || window.OmniAuth?.isAuthPage?.()) return;
+    if (checkoutPage||entryCheckStarted || entryCheckRunning || window.OmniAuth?.isAuthPage?.()) return;
     entryCheckRunning = true;
     const identity = await loadCurrentUser().catch(() => null);
     entryCheckRunning = false;
@@ -247,17 +287,18 @@
   }
 
   function load() {
-    if (announcements || loading) {
+    if (loading || (announcements && Date.now()-lastFetch<60000)) {
       render();
       runEntryChecks();
       return;
     }
     loading = true;
     fetch('/api/status', { cache: 'no-store', credentials: 'same-origin' })
-      .then((response) => response.ok ? response.json() : Promise.reject(new Error('status unavailable')))
+      .then((response) => {const date=response.headers?.get('date');if(date&&Number.isFinite(Date.parse(date)))serverOffset=Date.parse(date)/1000-Date.now()/1000;return response.ok ? response.json() : Promise.reject(new Error('status unavailable'));})
       .then((payload) => {
-        const data = payload.data || {};
+        const data = payload.data || {};lastFetch=Date.now();
         announcements = Array.isArray(data.announcements) ? data.announcements.slice(0, 20) : [];
+        queueUnreadAnnouncements(true);
         render();
         runEntryChecks();
       })
@@ -265,6 +306,8 @@
       .finally(() => { loading = false; });
   }
 
+  setInterval(()=>{if(activeDialogExpires&&now()>=activeDialogExpires)activeDialogClose?.(false);queueUnreadAnnouncements(true);load();},10000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});
   load();
   new MutationObserver(load).observe(document.documentElement, { childList: true, subtree: true });
 })();

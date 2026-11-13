@@ -1,0 +1,13 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Codex 图片生成接入 · OmniAPI</title><style>body{font-family:system-ui,sans-serif;max-width:760px;margin:48px auto;padding:0 22px;color:#183d32;line-height:1.85;background:#fbfcfb}h1{font-size:30px;line-height:1.4}a{color:#167053}pre{background:#edf3ef;padding:18px;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:12px}.download{display:inline-block;background:#216f55;color:white;padding:10px 20px;border-radius:8px;text-decoration:none}small{color:#526c62}li{margin:12px 0}code{overflow-wrap:anywhere}</style><main><a href="/">OmniAPI</a><h1>在 Codex 对话中生成真实图片</h1><p>保留 CC Switch 的现有主模型配置，额外接入 OmniAPI 图片 MCP 工具。模型为 <code>gpt-image-2</code>，当前已验收单张 1254×1254 PNG 文生图，品质可选 low（基础）、medium（标准）、high（精细），默认 low。实际开放状态与价格以模型广场为准。</p><p><a class="download" href="/brand/downloads/omniapi-images-mcp-1.2.1.zip" download>下载图片 MCP 1.2.1 与完整教程</a></p><ol><li>安装或确认 Python 3.10 及以上版本，将压缩包解压到 <code>C:\OmniAPI-Images</code>。脚本文件应位于此文件夹根目录。</li><li>在 CC Switch 的 MCP 页面新增 stdio 服务，启用到 Codex。配置如下，把令牌占位文字替换成您自己的 OmniAPI 令牌。</li></ol><pre>{
+  "mcpServers": {
+    "omniapi-images": {
+      "command": "py",
+      "args": ["-3", "C:/OmniAPI-Images/omni_images_mcp.py"],
+      "env": {
+        "OMNI_API_KEY": "替换为您自己的OmniAPI令牌",
+        "OMNI_BASE_URL": "https://omniapi.biz/v1",
+        "OMNI_IMAGE_OUTPUT_DIR": "C:/OmniAPI-Images/output"
+      }
+    }
+  }
+}</pre><p>如果编辑器要求单个服务对象，填写内层 command、args、env；若分字段编辑，按对应字段填写。只添加 MCP，不要覆盖已有 Codex 提供商配置。请勿将 <code>gpt-image-2</code> 设为主对话模型。</p><ol start="3"><li>完全退出并重新打开 Codex，确认有 <code>omni_generate_image</code> 工具。若可设置工具超时，设为 720 秒。在对话中发送：</li></ol><pre>请调用 omniapi-images 的 omni_generate_image 工具，生成一张白色背景、蓝色圆形图标的 PNG，文件名为 blue-circle.png。生成后告诉我文件路径，不要重复生成，也不用调用看图工具。</pre><h2>选择型号、尺寸与品质</h2><p>新版工具支持按模型目录选择型号和规格。先调用 <code>omni_list_image_models</code>，再使用 <code>omni_generate_image</code> 的 model、size、quality 参数。具体组合与价格以实时目录为准。</p><p><a href="/brand/image-studio.html">直接在网页生成图片</a> · <a href="/brand/connect.html">打开客户端接入助手</a></p><p><strong>low 基础</strong>适合草图和初步构思；<strong>medium 标准</strong>适合日常配图；<strong>high 精细</strong>适合希望增加细节的图片。gpt-image-2 已统一到 API 快连，当前尺寸为 1254×1254；1024 暂不支持，显式指定时会报错，不会自动改尺寸。其他型号的规格与价格由实时目录给出。生成时间受上游负载影响。</p><pre>请用 omni_generate_image 生成一张陶瓷茶壶图片，quality 设为 high，文件名 teapot-high.png。</pre><p>已安装旧版工具，请下载新版后替换原 omni_images_mcp.py，再重启 Codex。原有 MCP 配置和已生成图片可以继续使用。</p><p>工具成功后会保存真实 PNG，并返回本地图片路径。默认每次一张，约人民币 0.35 元，按网站当前报价及您的账户规则结算。工具不会覆盖已有图片，也不会自动重复生成。</p><p><small>这是独立 MCP 图片工具接入；Codex 官方内置图片工具的支持条件可能不同。遇到超时请先核对调用记录，避免重复提交。将 Request ID 发到<a href="/brand/support.html">客服工作台</a>即可继续排查。完整配置、Codex TOML 示例和常见问题均在下载包 README.md 中。</small></p></main></html>

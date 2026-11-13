@@ -1,0 +1,20 @@
+/* Keep the existing manual quotation and verification flow, with less chrome. */
+html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+body{background:#f5f7f7;color:#1b2926;font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+.topbar{height:68px;background:#fff;border-bottom:1px solid #e3e9e6;padding-inline:max(24px,calc((100vw - 1040px)/2))}
+main{max-width:1040px;padding:32px 24px 48px;margin:auto}
+.heading{margin-bottom:28px}.heading h1{font-size:26px;letter-spacing:0}.subtitle{max-width:none;font-size:14px}
+.steps,.payments-footer,.footer-bottom,.account-public-id{display:none!important}
+.checkout{grid-template-columns:minmax(0,1fr) 310px;gap:32px}
+.methods{grid-template-columns:1fr 1fr;gap:12px}.method{min-height:108px;padding:20px 16px;border-radius:10px}
+.method[data-method=international]{grid-column:1/-1;min-height:76px}.method .caption{font-size:12px}.method .small{font-size:12px}
+.method strong{font-size:16px}.method img.official-brand{width:50px;height:27px;object-fit:contain}
+.summary{padding:24px;border-radius:14px;background:#fff;position:static}.summary h2{font-size:19px}
+.total strong{font-size:36px}.amount{min-height:64px;font-size:23px}.amount-heading{margin-top:28px}
+.primary,.close,.save-qr{min-height:44px;touch-action:manipulation}.primary{font-size:15px}
+input{font-size:16px!important}.primary:active,.close:active{transform:scale(.98)}
+.source-link{font-size:12px}.account-info{overflow-wrap:anywhere}#account-public-id{display:none}
+dialog{max-height:calc(100dvh - 32px);border-radius:16px;box-shadow:0 16px 56px #173b2c24}
+.qr-details .qr-reminder{font-size:14px}.qr-details p{line-height:1.6}.dialog-title{font-size:23px}
+@media(max-width:700px){.topbar{padding-inline:20px}.topbar nav{gap:16px}.topbar nav a:first-child{display:none}main{padding:24px 18px calc(32px + env(safe-area-inset-bottom,0px))}.checkout{grid-template-columns:1fr;gap:24px}.summary{order:2}.methods{grid-template-columns:1fr 1fr}.method{min-height:116px;padding:18px 12px}.method-header{flex-wrap:wrap}.amount{font-size:22px;min-height:58px}.heading{margin-bottom:22px}.heading .history{display:block;font-size:12px}dialog.has-qr{padding:24px;width:calc(100vw - 28px)}.qr-payment{grid-template-columns:1fr}#collection-qr{width:min(230px,100%)}.qr-details>strong{font-size:28px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}

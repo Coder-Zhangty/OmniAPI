@@ -1,0 +1,19 @@
+{
+  "family": "Noto Sans SC Thin",
+  "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf",
+  "license_source": "https://raw.githubusercontent.com/google/fonts/main/ofl/notosanssc/OFL.txt",
+  "source_sha256": "a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da",
+  "woff_sha256": "48dca7ba1d2569cb396299752ccddd57ea62510c92e3a3ad375b5414e0b01c80",
+  "woff_bytes": 11294088,
+  "axes": [
+    {
+      "tag": "wght",
+      "min": 100.0,
+      "max": 900.0
+    }
+  ],
+  "self_hosted": true,
+  "typographic_family": "Noto Sans SC",
+  "preview_cjk_characters_checked": 400,
+  "missing_preview_cjk_characters": []
+}

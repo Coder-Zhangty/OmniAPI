@@ -1,0 +1,11 @@
+{
+  "name": "@omniapi/client-core",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "types":"./index.d.ts",
+  "exports": {".": {"types":"./index.d.ts","default":"./index.js"}, "./crypto": "./crypto.js", "./sync": "./sync.js", "./knowledge": "./knowledge.js", "./update":"./update.js"},
+  "scripts": {"test": "node --test tests/*.test.js"},
+  "dependencies": {"@noble/ciphers": "2.4.0", "@noble/hashes": "2.4.0", "@noble/curves": "2.4.0"}
+}

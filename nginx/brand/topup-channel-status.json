@@ -1,0 +1,7 @@
+{
+  "updated_at": "2026-10-23T02:48:25Z",
+  "channels": {
+    "alipay": { "available": false, "message": "支付宝通道维护中", "admin_reason": "经营者已确认签约；本应用下单仍返回访问受限，需核对关联商户与收款授权。" },
+    "wechat": { "available": false, "message": "微信通道维护中", "admin_reason": "微信子商户与 AppID 关联待修复，需服务商处理后验收。" }
+  }
+}

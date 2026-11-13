@@ -61,6 +61,11 @@ class Handler(BaseHTTPRequestHandler):
                    'X-Real-IP': self.headers.get('X-Real-IP', self.client_address[0]),
                    'X-Forwarded-For': self.headers.get('X-Forwarded-For', self.client_address[0]),
                    'X-Forwarded-Proto': self.headers.get('X-Forwarded-Proto', 'https')}
+        # Nginx is the only exposed peer. Preserve a narrow metadata allowlist;
+        # never accept a client-supplied claimed user ID or privilege header.
+        for field in ('Host', 'User-Agent', 'Origin', 'X-Request-ID', 'Accept-Language'):
+            if field in self.headers:
+                headers[field] = self.headers[field][:2048]
         try:
             conn.request('POST', self.path, body=body, headers=headers)
             response = conn.getresponse()

@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>模型价格 · OmniAPI</title>
   <link rel="icon" href="/brand/omniapi.svg">
-  <link rel="stylesheet" href="/brand/models.css">
-</head>
+  <link rel="stylesheet" href="/brand/models.css?v=omni-v2">
+<link rel="stylesheet" href="/brand/announcement-read.css?v=omni-v2"></head>
 <body>
   <header>
     <a class="brand" href="/"><img src="/brand/omniapi.svg" alt="">OmniAPI</a>
@@ -14,12 +14,12 @@
   </header>
   <main>
     <div class="title-row">
-      <div><div class="eyebrow">MODEL CATALOG</div><h1>模型价格</h1><p class="lead">按每 100 万 Tokens 计费，输入与输出分别列出，页面价格与实际扣费一致。</p></div>
+      <div><div class="eyebrow">MODEL CATALOG</div><h1>模型价格</h1><p class="lead">文字按每 100 万 Tokens 计费，图片按张计费，具体单位在模型价格旁标明。</p></div>
       <div class="meta"><span id="count">读取中…</span><span>币种 USD</span><span>按实际用量</span></div>
     </div>
-    <section><div class="table-head"><span>模型</span><span>输入 / M Tokens</span><span>输出 / M Tokens</span><span>计费方式</span></div><div id="models" aria-live="polite"></div><p id="error" role="alert"></p></section>
+    <section><div class="table-head"><span>模型</span><span>输入 / M Tokens</span><span>输出 / M Tokens</span><span>协议与权益</span></div><div id="models" aria-live="polite"></div><details id="more-models"><summary>更多模型与旧版本</summary><div id="more"></div></details><p id="error" role="alert"></p></section>
   </main>
-  <footer>价格可能随供应商成本调整；调整会在本页生效。金额固定显示两位小数。</footer>
-  <script src="/brand/models.js" defer></script>
-</body>
+  <footer>价格按精确单价展示；低价模型保留有效小数。订阅范围与核验日期以实际配置为准。</footer>
+  <script src="/brand/models.js?v=omni-v2" defer></script>
+<script src="/brand/commerce-session.js?v=omni-v2" defer></script><script src="/brand/commerce-announcements.js?v=omni-v2" defer></script></body>
 </html>

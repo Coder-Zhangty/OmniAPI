@@ -110,15 +110,16 @@ def measure(browser, page):
     The stylesheet is inlined because `file://` cannot resolve `/brand/plans.css`.
     """
     html = (ROOT / PAGES[page]).read_text(encoding='utf-8')
-    css = (ROOT / 'nginx/brand/plans.css').read_text(encoding='utf-8')
-    style = inline_style(page)
-    panel = 'chat-panel' if page == 'support' else 'board'
-    html = html.replace('<link rel="stylesheet" href="/brand/plans.css">',
-                        '<style>%s</style><style>%s</style>' % (css, style), 1)
-    html = re.sub(r'<section class="panel" id="gate" hidden>.*?</section>', '', html, flags=re.S)
-    html = html.replace('id="%s" hidden' % panel, 'id="%s"' % panel, 1)
-    # The page scripts would call the live API; they are not what is being measured.
+    css = (ROOT / 'nginx/brand/support-desk.css').read_text(encoding='utf-8')
+    html = re.sub(r'<link rel="stylesheet" href="/brand/support-desk.css[^"]*">', '<style>'+css+'</style>', html)
     html = re.sub(r'<script src="/brand/[^"]+"[^>]*></script>', '', html)
+    if page == 'support':
+        template = re.search(r'<template id="thread-template">(.*?)</template>', html, re.S).group(1)
+    else:
+        template = '<div class="desk-actions">工单</div><div class="timeline">消息</div><div class="composer"><textarea id="message-text"></textarea><div class="composer-row"><button class="s-btn">发送回复</button></div></div>'
+    main_id = 'main' if page == 'support' else 'desk-thread'
+    html = re.sub(r'<main class="[^"]*" id="'+main_id+r'">.*?</main>', '<main class="'+('user-main' if page=='support' else 'desk-thread')+'" id="'+main_id+'">'+template+'</main>', html, flags=re.S)
+    html = html.replace('id="message-text"', 'id="text"')
     probe = """
 <pre id="measure"></pre>
 <script>
@@ -180,37 +181,11 @@ document.getElementById('measure').textContent=OPEN+out.join(' | ')+CLOSE;
 
 
 class StaticResetTests(unittest.TestCase):
-    """任何机器都能跑的静态检查：flex 行里的按钮必须复位 width。"""
-
-    def test_every_flex_row_resets_button_width(self):
-        for page in PAGES:
-            html = (ROOT / PAGES[page]).read_text(encoding='utf-8')
-            rules = css_rules(inline_style(page))
-            for container in FLEX_ROW_CONTAINERS:
-                if container not in html:
-                    continue                      # that page has no such row
-                matching = [body for selector, body in rules
-                            if selector == container + ' button']
-                with self.subTest(page=page, container=container):
-                    self.assertTrue(
-                        matching,
-                        '%s 的 %s 里有按钮，却没有一条 `%s button { width: … }` 复位规则；'
-                        'plans.css 的全局 button{width:100%%} 会把输入框挤没。'
-                        % (PAGES[page], container, container))
-                    self.assertTrue(
-                        any('width' in body for body in matching),
-                        '%s 的 `%s button` 规则里没有 width —— 按钮仍会撑满整行。'
-                        % (PAGES[page], container))
-
-    def test_the_input_is_not_sized_by_the_global_textarea_rule(self):
-        for page in PAGES:
-            rules = dict(css_rules(inline_style(page)))
-            body = rules.get('.composer textarea', '')
-            with self.subTest(page=page):
-                self.assertIn('flex', body,
-                              '%s 的 .composer textarea 必须显式设 flex/min-width，'
-                              '否则 plans.css 的 textarea{width:100%%} 会让它和按钮互相挤。' % page)
-
+    def test_pages_use_shared_layout_without_inline_flex_override(self):
+        for page in PAGES.values():
+            html = (ROOT / page).read_text(encoding='utf-8')
+            self.assertIn('/brand/support-desk.css', html)
+            self.assertNotIn('<style>', html)
 
 class MeasuredLayoutTests(unittest.TestCase):
     """真实浏览器测量。没有 Chrome/Edge 时跳过，并把原因说清楚。"""

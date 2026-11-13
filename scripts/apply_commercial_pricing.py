@@ -1,10 +1,4 @@
-"""Apply approved commercial retail prices (supplier cost x 2) to live billing.
-
-Snapshots the current native billing expressions before changing them so the
-previous pricing can be restored from the snapshot file. Refuses to run while
-any enabled model lacks a verified supplier cost. Does not touch channels,
-upstream keys, subscriptions or user balances.
-"""
+"""Retired publisher: live writes are disabled; draft quote helpers remain."""
 import argparse
 import json
 import sys
@@ -33,7 +27,7 @@ def vendor_for(name):
 
 
 def planned(config, catalog_path):
-    """Derive cost x 2 expressions for every enabled (PASS) model."""
+    """Derive a 2.5 multiplier draft, without publishing it."""
     catalog = json.loads(Path(catalog_path).read_text(encoding='utf-8'))
     required = enabled_models(catalog)
     models = merge_models(config)
@@ -50,6 +44,7 @@ def pricing_rows(data):
 
 
 def apply(config_path, catalog_path, snapshot_path, evidence_path, dry_run=False):
+    raise RuntimeError('旧成本表发布入口已停用。请使用已核验的 routing-price-candidate.json 和 routing-release.py，避免覆盖 2.5 倍定价。')
     config = json.loads(Path(config_path).read_text(encoding='utf-8'))
     result = planned(config, catalog_path)
 

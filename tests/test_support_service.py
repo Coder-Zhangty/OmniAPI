@@ -328,7 +328,7 @@ class UserConversationTests(ServiceCase):
         self.assertEqual([row['role'] for row in rows], ['user', 'system'])
 
     def test_identity_checks_have_their_own_budget(self):
-        self.service.identify_gate = support_service.queue.SlidingWindow(2, 600)
+        self.service.invalid_identify_gate = support_service.queue.SlidingWindow(2, 600)
         self.call('/brand/api/support/start', {}, token='bad')
         self.call('/brand/api/support/start', {}, token='bad')
         status, _ = self.call('/brand/api/support/start', {}, token='bad')

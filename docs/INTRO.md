@@ -89,7 +89,7 @@ curl https://omniapi.biz/v1/chat/completions \
 | 模型价格 | <https://omniapi.biz/pricing> |
 | 账户充值 | <https://omniapi.biz/brand/topup.html>（1 元起） |
 | 套餐 | <https://omniapi.biz/brand/plans.html> |
-| 客服邮箱 | 3073283716@qq.com |
+| 客服邮箱 | support@example.com |
 
 ## 常见问题
 

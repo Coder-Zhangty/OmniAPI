@@ -1,0 +1,8 @@
+(() => {
+ 'use strict';if(window.__omniRiskNavigation)return;window.__omniRiskNavigation=true;
+ let root=false,checking=false;
+ function render(){for(const content of document.querySelectorAll('[data-slot="sidebar-content"]')){const old=content.querySelector('.omni-risk-nav');if(!root){old?.remove();continue;}if(old)continue;const nav=document.createElement('nav');nav.className='omni-risk-nav omni-image-nav';nav.setAttribute('aria-label','管理员风控');const a=document.createElement('a');a.href='/risk-control';a.title='风控中心';a.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6z"/><path d="M12 7v6m0 3v1"/></svg><span>风控中心</span>';nav.append(a);content.append(nav);}}
+ async function check(){if(checking||!window.OmniCommerce)return;checking=true;try{const user=await OmniCommerce.identity();root=Number(user.role)>=100;if(root)await OmniCommerce.request('/api/omni/admin/risk/summary');}catch(_){root=false;}finally{checking=false;render();}}
+ if(!window.OmniCommerce){let s=document.getElementById('omni-risk-session-loader');if(!s){s=document.createElement('script');s.id='omni-risk-session-loader';s.src='/brand/commerce-session.js';s.addEventListener('load',check,{once:true});document.head.append(s);}else s.addEventListener('load',check,{once:true});}else check();
+ let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;render();});}).observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('popstate',check);setInterval(()=>{if(document.visibilityState==='visible')check();},60000);
+})();
